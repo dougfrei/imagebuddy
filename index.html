@@ -6,13 +6,21 @@
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="">
-    <title>Responsive Images</title>
+    <title>ImageTools</title>
 </head>
 
 <body>
-    <div style="width: 30vw; height: 200px; border: 1px solid #000; background-size: cover; background-postion: center;" data-rimg-sources="https://unsplash.it/320/200,320,200;https://unsplash.it/640/480,640,480;https://unsplash.it/1024/768,1024,768"></div>
+    <div style="width: 30vw; height: 200px; border: 1px solid #000; background-size: cover; background-postion: center;" data-it-sources="https://unsplash.it/320/200,320,200;https://unsplash.it/640/480,640,480;https://unsplash.it/1024/768,1024,768"></div>
 
-    <script src="responsive-images.js"></script>
+    <script src="imageTools.js"></script>
+    <script type="text/javascript">
+        window.onload = function() {
+            window.rImg = new ImageTools({
+                debug: true,
+                matchDPR: false
+            });
+        }
+    </script>
 </body>
 
 </html>
