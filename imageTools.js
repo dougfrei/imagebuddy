@@ -1,45 +1,89 @@
 class ImageTools {
     constructor(opts) {
-        this.resizeRunning = false;
+        this.eventsRunning = {
+            resize: false,
+            scroll: false
+        };
+
         this.elementCache = [];
+        
         this.config = {
             events: {
-                resize: 'imageToolsResize'
+                resize: 'imageToolsResize',
+                scroll: 'imageToolsScroll'
             },
             attributes: {
-                sources: 'data-it-sources'
+                // enabled: 'data-it-enabled',
+                sources: 'data-it-sources',
+                lazyLoad: 'data-it-lazyload'
             }
         };
 
         this.opts = Object.assign({
             debug: false,
-            matchDPR: true
+            matchDPR: true,
+            lazyLoadDefault: false,
+            lazyLoadThreshold: 100
         }, opts);
         
         this.init();
     }
 
     init() {
-        this.setupResizeListener();
+        this.setupEventListeners();
         this.getElements();
-        this.elementCache.forEach(item => this.chooseImage(item.el));
-    }
-
-    setupResizeListener() {
-        window.addEventListener('resize', () => {
-            if (this.resizeRunning) {
+        this.elementCache.forEach(item => {
+            if (item.loaded || (item.lazyLoad && !this.canLazyLoad(item))) {
                 return;
             }
 
-            this.resizeRunning = true;
+            console.log('can load', item);
+
+            this.chooseImage(item);
+        });
+    }
+
+    canLazyLoad(item) {
+        if (!item.lazyLoad || item.loaded) {
+            return;
+        }
+
+        // console.log('check', window.scrollY, window.innerHeight, item.el.offsetTop);
+        if (item.el.offsetTop - (window.scrollY + window.innerHeight) <= this.opts.lazyLoadThreshold) {
+            console.info('lazy loading', item.el);
+            item.loaded = true;
+        }
+    }
+
+    setupEventListeners() {
+        window.addEventListener('scroll', () => {
+            if (this.eventsRunning.scroll) {
+                return;
+            }
+
+            this.eventsRunning.scroll = true;
+
+            requestAnimationFrame(() => {
+                window.dispatchEvent(new CustomEvent(this.config.events.scroll));
+                this.eventsRunning.scroll = false;
+            });
+        });
+
+        window.addEventListener('resize', () => {
+            if (this.eventsRunning.resize) {
+                return;
+            }
+
+            this.eventsRunning.resize = true;
 
             requestAnimationFrame(() => {
                 window.dispatchEvent(new CustomEvent(this.config.events.resize));
-                this.resizeRunning = false;
+                this.eventsRunning.resize = false;
             });
         });
         
         window.addEventListener(this.config.events.resize, this.resizeHandler.bind(this));
+        window.addEventListener(this.config.events.scroll, this.scrollHandler.bind(this));
     }
 
     debug() {
@@ -56,9 +100,13 @@ class ImageTools {
                 el: el,
                 elType: el.tagName.toLowerCase(),
                 container: this.getContainerDimensions(el),
-                sizes: this.getSizes(el.getAttribute(this.config.attributes.sources))
+                sizes: this.getSizes(el.getAttribute(this.config.attributes.sources)),
+                lazyLoad: el.getAttribute(this.config.attributes.lazyLoad) ? el.getAttribute(this.config.attributes.lazyLoad) == 'true' : this.opts.lazyLoadDefault,
+                loaded: false // FIXME: figure out a way to check if images are already loaded when this array is created
             });
         });
+
+        console.info(this.elementCache);
     }
 
     getContainerDimensions(el) {
@@ -90,13 +138,13 @@ class ImageTools {
             .sort((a, b) => a.width > b.width ? 1 : -1);
     }
 
-    chooseImage(el) {
-        const sizes = this.getSizes(el.getAttribute(this.config.attributes.sources));
-        const elType = el.tagName.toLowerCase();
+    chooseImage(item) {
+        const sizes = this.getSizes(item.el.getAttribute(this.config.attributes.sources));
+        const elType = item.el.tagName.toLowerCase();
         
         console.table(sizes);
         
-        const container = this.getContainerDimensions(el);
+        const container = this.getContainerDimensions(item.el);
 
         if (this.opts.matchDPR) {
             container.width *= window.devicePixelRatio;
@@ -123,16 +171,29 @@ class ImageTools {
 
         switch (elType) {
             case 'div':
-                el.style.backgroundImage = `url('${idealImage.url}')`;
+                item.el.style.backgroundImage = `url('${idealImage.url}')`;
                 break;
             
             default:
                 break;
         }
+
+        item.loaded = true;
     }
 
     resizeHandler() {
         // update container sizes
         this.debug('resizeHandler');
+    }
+
+    scrollHandler() {
+        // lazy load images
+        this.elementCache.forEach(item => {
+            if (item.loaded || (item.lazyLoad && !this.canLazyLoad(item))) {
+                return;
+            }
+
+            this.chooseImage(item);
+        });
     }
 }
