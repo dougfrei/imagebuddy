@@ -36,10 +36,12 @@
 
     <div class="bg-image test2" data-it-sources="https://unsplash.it/320/200,320,200;https://unsplash.it/640/480,640,480;https://unsplash.it/1024/768,1024,768"></div>
 
+    <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="alt text for image" data-it-sources="https://unsplash.it/320/200,320,200;https://unsplash.it/640/480,640,480;https://unsplash.it/1024/768,1024,768" style="width: 100%; height: 400px">
+
     <script src="imageTools.js"></script>
     <script type="text/javascript">
         window.onload = function() {
-            window.rImg = new ImageTools({
+            window.imageTools = new ImageTools({
                 debug: true,
                 matchDPR: false,
                 lazyLoadDefault: true

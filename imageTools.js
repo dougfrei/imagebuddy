@@ -37,22 +37,20 @@ class ImageTools {
                 return;
             }
 
-            console.log('can load', item);
-
             this.chooseImage(item);
         });
     }
 
     canLazyLoad(item) {
         if (!item.lazyLoad || item.loaded) {
-            return;
+            return false;
         }
 
-        // console.log('check', window.scrollY, window.innerHeight, item.el.offsetTop);
         if (item.el.offsetTop - (window.scrollY + window.innerHeight) <= this.opts.lazyLoadThreshold) {
-            console.info('lazy loading', item.el);
-            item.loaded = true;
+            return true;
         }
+
+        return false;
     }
 
     setupEventListeners() {
@@ -117,6 +115,7 @@ class ImageTools {
 
         switch (el.tagName.toLowerCase()) {
             case 'div':
+            case 'img':
                 container.width = el.clientWidth;
                 container.height = el.clientHeight;
                 break;
@@ -174,6 +173,10 @@ class ImageTools {
                 item.el.style.backgroundImage = `url('${idealImage.url}')`;
                 break;
             
+            case 'img':
+                item.el.setAttribute('src', idealImage.url);
+                break;
+            
             default:
                 break;
         }
@@ -193,6 +196,7 @@ class ImageTools {
                 return;
             }
 
+            console.info('choosing image', item);
             this.chooseImage(item);
         });
     }
