@@ -1,0 +1,26 @@
+{
+  "name": "imagetools",
+  "version": "1.0.0",
+  "description": "ImageTools",
+  "main": "gulpfile.js",
+  "devDependencies": {
+    "babel-preset-es2015": "^6.18.0",
+    "gulp": "^3.9.0",
+    "gulp-babel": "^6.1.2",
+    "gulp-jshint": "^2.0.4",
+    "gulp-load-plugins": "^1.1.0",
+    "gulp-notify": "^2.2.0",
+    "gulp-plumber": "^1.1.0",
+    "gulp-rename": "^1.2.2",
+    "gulp-sourcemaps": "^2.4.0",
+    "gulp-uglify": "^2.0.0",
+    "jshint": "^2.9.4",
+    "jshint-stylish": "^2.2.0"
+  },
+  "dependencies": {
+  },
+  "scripts": {
+  },
+  "author": "Doug Frei <dougfrei@gmail.com>",
+  "license": "ISC"
+}

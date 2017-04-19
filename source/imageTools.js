@@ -1,10 +1,11 @@
 class ImageTools {
+    /**
+     * Constructor
+     * 
+     * @param {object} opts 
+     */
     constructor(opts) {
-        this.eventsRunning = {
-            resize: false,
-            scroll: false
-        };
-
+        this.eventsRunning = {};
         this.elementCache = [];
         
         this.config = {
@@ -26,12 +27,16 @@ class ImageTools {
             lazyLoadThreshold: 100
         }, opts);
         
-        this.init();
-    }
-
-    init() {
         this.setupEventListeners();
         this.getElements();
+
+        this.processElementCache();
+    }
+
+    /**
+     * Loop through the current element cache and choose images
+     */
+    processElementCache() {
         this.elementCache.forEach(item => {
             if (item.loaded || (item.lazyLoad && !this.canLazyLoad(item))) {
                 return;
@@ -41,6 +46,11 @@ class ImageTools {
         });
     }
 
+    /**
+     * Test if an item is lazy load-able
+     * 
+     * @param {object} item 
+     */
     canLazyLoad(item) {
         if (!item.lazyLoad || item.loaded) {
             return false;
@@ -53,43 +63,55 @@ class ImageTools {
         return false;
     }
 
-    setupEventListeners() {
-        window.addEventListener('scroll', () => {
-            if (this.eventsRunning.scroll) {
+    /**
+     * Setup a throttled event listener
+     * 
+     * @param {string} name 
+     * @param {function} callback 
+     */
+    throttleEventListener(eventName, callback) {
+        if (!this.eventsRunning.hasOwnProperty(eventName)) {
+            this.eventsRunning[eventName] = false;
+        }
+
+        window.addEventListener(eventName, () => {
+            if (this.eventsRunning[eventName]) {
                 return;
             }
 
-            this.eventsRunning.scroll = true;
+            this.eventsRunning[eventName] = true;
 
             requestAnimationFrame(() => {
-                window.dispatchEvent(new CustomEvent(this.config.events.scroll));
-                this.eventsRunning.scroll = false;
+                window.dispatchEvent(new CustomEvent(eventName+'-throttled'));
+                this.eventsRunning[eventName] = false;
             });
         });
 
-        window.addEventListener('resize', () => {
-            if (this.eventsRunning.resize) {
-                return;
-            }
-
-            this.eventsRunning.resize = true;
-
-            requestAnimationFrame(() => {
-                window.dispatchEvent(new CustomEvent(this.config.events.resize));
-                this.eventsRunning.resize = false;
-            });
-        });
-        
-        window.addEventListener(this.config.events.resize, this.resizeHandler.bind(this));
-        window.addEventListener(this.config.events.scroll, this.scrollHandler.bind(this));
+        if (typeof callback == 'function') {
+            window.addEventListener(eventName+'-throttled', callback);
+        }
     }
 
+    /**
+     * Setup and throttle event listeners -- scroll & resize
+     */
+    setupEventListeners() {
+        this.throttleEventListener('resize', this.resizeHandler.bind(this));
+        this.throttleEventListener('scroll', this.scrollHandler.bind(this));
+    }
+
+    /**
+     * Print a debug message
+     */
     debug() {
         if (this.opts.debug) {
             console.log(...arguments);
         }
     }
 
+    /**
+     * Get all the HTML elements configured for image selection
+     */
     getElements() {
         this.elementCache = [];
 
@@ -107,6 +129,11 @@ class ImageTools {
         console.info(this.elementCache);
     }
 
+    /**
+     * Get container dimensions of an HTML element
+     * 
+     * @param {object} el 
+     */
     getContainerDimensions(el) {
         const container = {
             width: 0,
@@ -127,6 +154,11 @@ class ImageTools {
         return container;
     }
 
+    /**
+     * Create an array of image sizes from the "data-it-sources" attribute
+     * 
+     * @param {string} rImgSources 
+     */
     getSizes(rImgSources) {
         return rImgSources
             .split(';')
@@ -134,9 +166,20 @@ class ImageTools {
                 const [url, width, height] = sizeEl.split(',');
                 return { url: url, width: parseInt(width), height: parseInt(height) };
             })
-            .sort((a, b) => a.width > b.width ? 1 : -1);
+            .sort((a, b) => {
+                if (a.width >= a.height) {
+                    return a.width > b.width ? 1 : -1;
+                } else {
+                    return a.height > b.height ? 1 : -1;
+                }
+            });
     }
 
+    /**
+     * Choose the appropriate image and apply it to the element
+     * 
+     * @param {object} item 
+     */
     chooseImage(item) {
         const sizes = this.getSizes(item.el.getAttribute(this.config.attributes.sources));
         const elType = item.el.tagName.toLowerCase();
@@ -149,24 +192,12 @@ class ImageTools {
             container.width *= window.devicePixelRatio;
             container.height *= window.devicePixelRatio;
         }
-        
-        // this.debug(container);
-        // this.debug(sizes);
 
-        let idealImage = false;
-
-        sizes.forEach((size) => {
-            // ensure image matches the minimum width and height of the container
-            if (size.width < container.width || size.height < container.height) {
-                return;
-            }
-            
-            if (!idealImage || size.width < idealImage.width || size.height < idealImage.height) {
-                idealImage = size;
-            }
+        let possibleSizes = sizes.filter(function(size) {
+            return size.width >= container.width && size.height >= container.height;
         });
 
-        this.debug('ideal image', idealImage);
+        let idealImage = possibleSizes.length ? possibleSizes[0] : sizes[sizes.length-1];
 
         switch (elType) {
             case 'div':
@@ -184,11 +215,17 @@ class ImageTools {
         item.loaded = true;
     }
 
+    /**
+     * Resize handler
+     */
     resizeHandler() {
         // update container sizes
         this.debug('resizeHandler');
     }
 
+    /**
+     * Scroll handler -- check for lazy load-able images
+     */
     scrollHandler() {
         // lazy load images
         this.elementCache.forEach(item => {
