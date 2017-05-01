@@ -1,13 +1,13 @@
 class ImageTools {
     /**
      * Constructor
-     * 
-     * @param {object} opts 
+     *
+     * @param {object} opts
      */
     constructor(opts) {
         this.eventsRunning = {};
         this.elementCache = [];
-        
+
         this.config = {
             events: {
                 resize: 'imageToolsResize',
@@ -26,7 +26,7 @@ class ImageTools {
             lazyLoadDefault: false,
             lazyLoadThreshold: 100
         }, opts);
-        
+
         this.setupEventListeners();
         this.getElements();
 
@@ -48,8 +48,8 @@ class ImageTools {
 
     /**
      * Test if an item is lazy load-able
-     * 
-     * @param {object} item 
+     *
+     * @param {object} item
      */
     canLazyLoad(item) {
         if (!item.lazyLoad || item.loaded) {
@@ -65,9 +65,9 @@ class ImageTools {
 
     /**
      * Setup a throttled event listener
-     * 
-     * @param {string} name 
-     * @param {function} callback 
+     *
+     * @param {string} name
+     * @param {function} callback
      */
     throttleEventListener(eventName, callback) {
         if (!this.eventsRunning.hasOwnProperty(eventName)) {
@@ -105,9 +105,21 @@ class ImageTools {
      */
     debug() {
         if (this.opts.debug) {
-            console.log(...arguments);
+			console.log(...arguments);
         }
     }
+	
+	debugInfo() {
+		if (this.opts.debug) {
+			console.info(...arguments);
+		}
+	}
+
+	debugTable() {
+		if (this.opts.debug) {
+			console.table(...arguments);
+		}
+	}
 
     /**
      * Get all the HTML elements configured for image selection
@@ -126,13 +138,13 @@ class ImageTools {
             });
         });
 
-        console.info(this.elementCache);
+        this.debugInfo(this.elementCache);
     }
 
     /**
      * Get container dimensions of an HTML element
-     * 
-     * @param {object} el 
+     *
+     * @param {object} el
      */
     getContainerDimensions(el) {
         const container = {
@@ -146,7 +158,7 @@ class ImageTools {
                 container.width = el.clientWidth;
                 container.height = el.clientHeight;
                 break;
-            
+
             default:
                 break;
         }
@@ -156,8 +168,8 @@ class ImageTools {
 
     /**
      * Create an array of image sizes from the "data-it-sources" attribute
-     * 
-     * @param {string} rImgSources 
+     *
+     * @param {string} rImgSources
      */
     getSizes(rImgSources) {
         return rImgSources
@@ -177,15 +189,15 @@ class ImageTools {
 
     /**
      * Choose the appropriate image and apply it to the element
-     * 
-     * @param {object} item 
+     *
+     * @param {object} item
      */
     chooseImage(item) {
         const sizes = this.getSizes(item.el.getAttribute(this.config.attributes.sources));
         const elType = item.el.tagName.toLowerCase();
-        
-        console.table(sizes);
-        
+
+		this.debugTable(sizes);
+
         const container = this.getContainerDimensions(item.el);
 
         if (this.opts.matchDPR) {
@@ -203,11 +215,11 @@ class ImageTools {
             case 'div':
                 item.el.style.backgroundImage = `url('${idealImage.url}')`;
                 break;
-            
+
             case 'img':
                 item.el.setAttribute('src', idealImage.url);
                 break;
-            
+
             default:
                 break;
         }
@@ -233,7 +245,7 @@ class ImageTools {
                 return;
             }
 
-            console.info('choosing image', item);
+            // this.debugInfo('choosing image', item);
             this.chooseImage(item);
         });
     }
