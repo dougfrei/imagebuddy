@@ -1,4 +1,6 @@
-// Object.assign polyfill for IE
+/**
+ * Object.assign polyfill for IE
+ */
 if (typeof Object.assign != 'function') {
     Object.assign = function(target, varArgs) { // .length of function is 2
         'use strict';
@@ -26,7 +28,9 @@ if (typeof Object.assign != 'function') {
     };
 }
 
-// Event constructor polyfill for IE
+/**
+ * Event constructor polyfill for IE
+ */
 (function () {
     if (typeof window.CustomEvent === 'function')
         return false;
@@ -44,6 +48,9 @@ if (typeof Object.assign != 'function') {
     window.CustomEvent = CustomEvent;
 })();
 
+/**
+ * ImageTools class
+ */
 class ImageTools {
     /**
      * Constructor
@@ -64,7 +71,8 @@ class ImageTools {
                 sources: 'data-it-sources',
                 lazyLoad: 'data-it-lazyload',
 				lazyLoadThreshold: 'data-it-lazyload-threshold',
-				matchDPR: 'data-it-match-dpr'
+				matchDPR: 'data-it-match-dpr',
+                noHeight: 'data-it-no-height'
             }
         };
 
@@ -81,14 +89,6 @@ class ImageTools {
 
 	update() {
         this.getElements();
-
-		// this.elementCache.forEach(item => {
-        //     if (item.loaded || (item.options.lazyLoad && !this.canLazyLoad(item))) {
-        //         return;
-        //     }
-		//
-        //     this.chooseImage(item);
-        // });
 
         for (var i = 0; i < this.elementCache.length; i++) {
 			const item = this.elementCache[i];
@@ -111,7 +111,6 @@ class ImageTools {
             return false;
         }
 
-        // if (item.el.offsetTop - (window.scrollY + window.innerHeight) <= item.options.lazyLoadThreshold) {
         if (item.el.offsetTop - (window.pageYOffset + window.innerHeight) <= item.options.lazyLoadThreshold) {
             return true;
         }
@@ -191,14 +190,14 @@ class ImageTools {
             this.elementCache.push({
                 el: el,
                 elType: el.tagName.toLowerCase(),
-                container: this.getContainerDimensions(el),
+                // container: this.getContainerDimensions(el),
                 sizes: this.getSizes(el.getAttribute(this.config.attributes.sources)),
-                // lazyLoad: el.getAttribute(this.config.attributes.lazyLoad) ? el.getAttribute(this.config.attributes.lazyLoad) == 'true' : this.opts.lazyLoad,
                 loaded: false, // FIXME: figure out a way to check if images are already loaded when this array is created
 				options: {
 					lazyLoad: el.getAttribute(this.config.attributes.lazyLoad) ? el.getAttribute(this.config.attributes.lazyLoad) == 'true' : this.opts.lazyLoad,
 					lazyLoadThreshold: el.getAttribute(this.config.attributes.lazyLoadThreshold) ? el.getAttribute(this.config.attributes.lazyLoadThreshold) : this.opts.lazyLoadThreshold,
 					matchDPR: el.getAttribute(this.config.attributes.matchDPR) ? el.getAttribute(this.config.attributes.matchDPR) : this.opts.matchDPR,
+                    noHeight: el.getAttribute(this.config.attributes.noHeight) ? el.getAttribute(this.config.attributes.noHeight) : false
 				}
             });
 		}
@@ -210,8 +209,9 @@ class ImageTools {
      * Get container dimensions of an HTML element
      *
      * @param {object} el
+     * @param {bool} noHeight
      */
-    getContainerDimensions(el) {
+    getContainerDimensions(el, noHeight) {
         // FIXME:
         // this is tricky since an IMG tag may not have a set height and we can't rely on
         // its container for that height value
@@ -232,9 +232,19 @@ class ImageTools {
             container.width = this.getElementWidth(el.parentElement);
         }
 
+        if (noHeight) {
+            container.height = 0;
+        }
+
         return container;
     }
 
+    /**
+     * Return the width of a tested element
+     * This will examine a style attribute tag first and fallback to the computed style
+     * 
+     * @param {object} el 
+     */
     getElementWidth(el) {
         const displayStyle = el.style.display ? el.style.display : window.getComputedStyle(el).display;
 
@@ -316,17 +326,12 @@ class ImageTools {
 		const sizes = this.getSizes(item.el.getAttribute(this.config.attributes.sources));
         const elType = item.el.tagName.toLowerCase();
 
-        const container = this.getContainerDimensions(item.el);
-
-		// if (this.opts.matchDPR) {
+        const container = this.getContainerDimensions(item.el, item.options.noHeight);
+        
 		if (item.options.matchDPR) {
             container.width *= window.devicePixelRatio;
             container.height *= window.devicePixelRatio;
         }
-
-		// let possibleSizes = sizes.filter(function(size) {
-		// 	return size.width >= container.width && size.height >= container.height;
-        // });
 
 		let scoredSizes = sizes.map(size => {
 			size.score = this.calculateUsabilityScore(container.width, container.height, size.width, size.height);
