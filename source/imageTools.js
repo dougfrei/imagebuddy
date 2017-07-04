@@ -1,26 +1,30 @@
+// Object.assign polyfill for IE
+
 if (typeof Object.assign != 'function') {
-  Object.assign = function(target, varArgs) { // .length of function is 2
-    'use strict';
-    if (target == null) { // TypeError if undefined or null
-      throw new TypeError('Cannot convert undefined or null to object');
-    }
-
-    var to = Object(target);
-
-    for (var index = 1; index < arguments.length; index++) {
-      var nextSource = arguments[index];
-
-      if (nextSource != null) { // Skip over if undefined or null
-        for (var nextKey in nextSource) {
-          // Avoid bugs when hasOwnProperty is shadowed
-          if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
-            to[nextKey] = nextSource[nextKey];
-          }
+    Object.assign = function(target, varArgs) { // .length of function is 2
+        'use strict';
+        
+        if (target === null) { // TypeError if undefined or null
+            throw new TypeError('Cannot convert undefined or null to object');
         }
-      }
-    }
-    return to;
-  };
+
+        var to = Object(target);
+
+        for (var index = 1; index < arguments.length; index++) {
+            var nextSource = arguments[index];
+
+            if (nextSource !== null) { // Skip over if undefined or null
+                for (var nextKey in nextSource) {
+                    // Avoid bugs when hasOwnProperty is shadowed
+                    if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
+                        to[nextKey] = nextSource[nextKey];
+                    }
+                }
+            }
+        }
+
+        return to;
+    };
 }
 
 class ImageTools {
@@ -220,36 +224,70 @@ class ImageTools {
      * @param {object} el
      */
     getContainerDimensions(el) {
+        // FIXME:
+        // this is tricky since an IMG tag may not have a set height and we can't rely on
+        // its container for that height value
+        // I'm thinking the best way to tackle this is to see if the element has a height
+        // specified -- if not we'll disregard the height value
+        //      - how does a 100% height work with this?
+
+        // el.clientHeight works fine on all tags except IMG
+
+        const displayStyle = el.style.display ? el.style.display : window.getComputedStyle(el).display;
+
         let container = {
-            width: 0,
-            height: 0
+            width: (displayStyle == 'block') ? el.clientWidth : 0,
+            height: el.clientHeight ? el.clientHeight : 0 // TODO: try `parseInt(window.getComputedStyle(el).height)` here
         };
 
-		const displayStyle = el.style.display ? el.style.display : window.getComputedStyle(el).display;
+        if (!container.width) {
+            container.width = this.getElementWidth(el.parentElement);
+        }
 
-		if (displayStyle != 'block' && el.parentElement) {
-			container = this.getContainerDimensions(el.parentElement);
-		} else {
-			container.width = el.clientWidth;
-			container.height = el.clientHeight;
-		}
-
-		// switch (el.tagName.toLowerCase()) {
-		// 	case 'section':
-		// 	case 'div':
-		// 		container.width = el.clientWidth;
-		// 		container.height = el.clientHeight;
-		// 		break;
-		//
-		// 	default:
-		// 		if (el.parentElement) {
-		// 			container = this.getContainerDimensions(el.parentElement);
-		// 		}
-		//
-		// 		break;
-		// }
+        console.log('height', window.getComputedStyle(el).height, parseInt(window.getComputedStyle(el).height));
+        console.log(displayStyle, container, el.clientHeight);
 
         return container;
+
+		
+        // console.log(`displayStyle: ${displayStyle}`);
+        
+
+		// if (displayStyle != 'block' && el.parentElement) {
+		// 	container = this.getContainerDimensions(el.parentElement);
+		// } else {
+		// 	container.width = el.clientWidth;
+		// 	container.height = el.clientHeight;
+		// }
+
+		// // switch (el.tagName.toLowerCase()) {
+		// // 	case 'section':
+		// // 	case 'div':
+		// // 		container.width = el.clientWidth;
+		// // 		container.height = el.clientHeight;
+		// // 		break;
+		// //
+		// // 	default:
+		// // 		if (el.parentElement) {
+		// // 			container = this.getContainerDimensions(el.parentElement);
+		// // 		}
+		// //
+		// // 		break;
+		// // }
+
+        // return container;
+    }
+
+    getElementWidth(el) {
+        console.log('getting parent element width', el.tagName.toLowerCase());
+
+        const displayStyle = el.style.display ? el.style.display : window.getComputedStyle(el).display;
+
+        if (displayStyle != 'block' && el.parentElement) {
+            return this.getElementWidth(el.parentElement);
+        }
+
+        return el.clientWidth;
     }
 
     /**
@@ -276,6 +314,8 @@ class ImageTools {
 	calculateUsabilityScore(containerWidth, containerHeight, imageWidth, imageHeight) {
 		const isLandscape = containerWidth > containerHeight;
 
+        this.debug(`container: ${containerWidth}x${containerHeight}`, `image: ${imageWidth}x${imageHeight}`);
+
 		let score = 1;
 
 		if (imageWidth >= containerWidth) {
@@ -284,11 +324,13 @@ class ImageTools {
 			score -= Math.abs(containerWidth-imageWidth);
 		}
 
-		if (imageHeight >= containerHeight) {
-			score *= containerHeight / imageHeight;
-		} else {
-			score -= Math.abs(containerHeight-imageHeight);
-		}
+        if (containerHeight) {
+            if (imageHeight >= containerHeight) {
+                score *= containerHeight / imageHeight;
+            } else {
+                score -= Math.abs(containerHeight-imageHeight);
+            }
+        }
 
 
 
