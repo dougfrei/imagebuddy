@@ -6,6 +6,7 @@ const babel 		= require('gulp-babel');
 const plumber 		= require('gulp-plumber');
 const jshint 		= require('gulp-jshint');
 const notify 		= require('gulp-notify');
+const browserSync   = require('browser-sync').create();
 
 
 gulp.task('build-es5', function() {
@@ -57,6 +58,23 @@ gulp.task('build', function() {
         }));
 });
 
-gulp.task('default', ['build-es5'], function() {
+gulp.task('browser-sync', function() {
+    browserSync.init({
+        server: {
+            baseDir: './examples/',
+            directory: true,
+            routes: {
+                '/dist': './dist'
+            }
+        },
+        files: ['dist/imageTools.es5.min.js', 'examples/*'],
+        open: false
+    });
+});
+
+gulp.task('default', ['build-es5', 'browser-sync'], function() {
     gulp.watch('source/imageTools.js', ['build-es5']);
+
+    // gulp.watch('dist/imageTools.es5.min.js').on('change', browserSync.reload);
+    // gulp.watch('examples/*').on('change', browserSync.reload);
 });

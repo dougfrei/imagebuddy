@@ -1,5 +1,4 @@
 // Object.assign polyfill for IE
-
 if (typeof Object.assign != 'function') {
     Object.assign = function(target, varArgs) { // .length of function is 2
         'use strict';
@@ -26,6 +25,24 @@ if (typeof Object.assign != 'function') {
         return to;
     };
 }
+
+// Event constructor polyfill for IE
+(function () {
+    if (typeof window.CustomEvent === 'function')
+        return false;
+
+    function CustomEvent(event, params) {
+        params = params || { bubbles: false, cancelable: false, detail: undefined };
+        var evt = document.createEvent('CustomEvent');
+        evt.initCustomEvent(event, params.bubbles, params.cancelable, params.detail);
+        
+        return evt;
+    }
+
+    CustomEvent.prototype = window.Event.prototype;
+
+    window.CustomEvent = CustomEvent;
+})();
 
 class ImageTools {
     /**
@@ -54,7 +71,7 @@ class ImageTools {
         this.opts = Object.assign({
             debug: false,
             matchDPR: true,
-            lazyLoad: false,
+            lazyLoad: true,
             lazyLoadThreshold: 100
         }, opts);
 
@@ -63,7 +80,7 @@ class ImageTools {
     }
 
 	update() {
-		this.getElements();
+        this.getElements();
 
 		// this.elementCache.forEach(item => {
         //     if (item.loaded || (item.options.lazyLoad && !this.canLazyLoad(item))) {
@@ -73,10 +90,14 @@ class ImageTools {
         //     this.chooseImage(item);
         // });
 
-		for (var i = 0; i < this.elementCache.length; i++) {
+        for (var i = 0; i < this.elementCache.length; i++) {
 			const item = this.elementCache[i];
 
-		    if (item.loaded || (item.options.lazyLoad && !this.canLazyLoad(item))) {
+            console.info('loaded', item.loaded);
+            
+            // FIXME: why does IE11 return true here for all images?
+            if (item.loaded || (item.options.lazyLoad && this.canLazyLoad(item) === false)) {
+                console.info('skipping');
                 continue;
             }
 
@@ -199,6 +220,9 @@ class ImageTools {
             });
 		}
 
+        console.info(this.opts.lazyLoad);
+        console.info(this.elementCache);
+
         // document.querySelectorAll(`[${this.config.attributes.sources}]`).forEach((el) => {
         //     this.elementCache.push({
         //         el: el,
@@ -244,8 +268,8 @@ class ImageTools {
             container.width = this.getElementWidth(el.parentElement);
         }
 
-        console.log('height', window.getComputedStyle(el).height, parseInt(window.getComputedStyle(el).height));
-        console.log(displayStyle, container, el.clientHeight);
+        // console.log('height', window.getComputedStyle(el).height, parseInt(window.getComputedStyle(el).height));
+        // console.log(displayStyle, container, el.clientHeight);
 
         return container;
 
@@ -279,7 +303,7 @@ class ImageTools {
     }
 
     getElementWidth(el) {
-        console.log('getting parent element width', el.tagName.toLowerCase());
+        // console.log('getting parent element width', el.tagName.toLowerCase());
 
         const displayStyle = el.style.display ? el.style.display : window.getComputedStyle(el).display;
 
@@ -387,6 +411,8 @@ class ImageTools {
 
 		this.debug(idealImage);
 
+        console.info(`setting image: ${idealImage.url}`);
+
 		if (elType == 'img') {
 			item.el.setAttribute('src', idealImage.url);
 		} else {
@@ -417,7 +443,7 @@ class ImageTools {
             }
 
             // this.debugInfo('choosing image', item);
-			console.log('lazy loading', item);
+			console.info('lazy loading', item);
             this.chooseImage(item);
 		}
 
