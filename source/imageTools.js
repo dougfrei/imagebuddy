@@ -93,30 +93,13 @@ class ImageTools {
         for (var i = 0; i < this.elementCache.length; i++) {
 			const item = this.elementCache[i];
 
-            console.info('loaded', item.loaded);
-            
-            // FIXME: why does IE11 return true here for all images?
             if (item.loaded || (item.options.lazyLoad && this.canLazyLoad(item) === false)) {
-                console.info('skipping');
                 continue;
             }
 
             this.chooseImage(item);
 		}
 	}
-
-    /**
-     * Loop through the current element cache and choose images
-     */
-    // processElementCache() {
-    //     this.elementCache.forEach(item => {
-    //         if (item.loaded || (item.lazyLoad && !this.canLazyLoad(item))) {
-    //             return;
-    //         }
-	//
-    //         this.chooseImage(item);
-    //     });
-    // }
 
     /**
      * Test if an item is lazy load-able
@@ -128,8 +111,8 @@ class ImageTools {
             return false;
         }
 
-        // if (item.el.offsetTop - (window.scrollY + window.innerHeight) <= this.opts.lazyLoadThreshold) {
-		if (item.el.offsetTop - (window.scrollY + window.innerHeight) <= item.options.lazyLoadThreshold) {
+        // if (item.el.offsetTop - (window.scrollY + window.innerHeight) <= item.options.lazyLoadThreshold) {
+        if (item.el.offsetTop - (window.pageYOffset + window.innerHeight) <= item.options.lazyLoadThreshold) {
             return true;
         }
 
@@ -220,25 +203,6 @@ class ImageTools {
             });
 		}
 
-        console.info(this.opts.lazyLoad);
-        console.info(this.elementCache);
-
-        // document.querySelectorAll(`[${this.config.attributes.sources}]`).forEach((el) => {
-        //     this.elementCache.push({
-        //         el: el,
-        //         elType: el.tagName.toLowerCase(),
-        //         container: this.getContainerDimensions(el),
-        //         sizes: this.getSizes(el.getAttribute(this.config.attributes.sources)),
-        //         // lazyLoad: el.getAttribute(this.config.attributes.lazyLoad) ? el.getAttribute(this.config.attributes.lazyLoad) == 'true' : this.opts.lazyLoad,
-        //         loaded: false, // FIXME: figure out a way to check if images are already loaded when this array is created
-		// 		options: {
-		// 			lazyLoad: el.getAttribute(this.config.attributes.lazyLoad) ? el.getAttribute(this.config.attributes.lazyLoad) == 'true' : this.opts.lazyLoad,
-		// 			lazyLoadThreshold: el.getAttribute(this.config.attributes.lazyLoadThreshold) ? el.getAttribute(this.config.attributes.lazyLoadThreshold) : this.opts.lazyLoadThreshold,
-		// 			matchDPR: el.getAttribute(this.config.attributes.matchDPR) ? el.getAttribute(this.config.attributes.matchDPR) : this.opts.matchDPR,
-		// 		}
-        //     });
-        // });
-
         this.debugInfo(this.elementCache);
     }
 
@@ -268,43 +232,10 @@ class ImageTools {
             container.width = this.getElementWidth(el.parentElement);
         }
 
-        // console.log('height', window.getComputedStyle(el).height, parseInt(window.getComputedStyle(el).height));
-        // console.log(displayStyle, container, el.clientHeight);
-
         return container;
-
-		
-        // console.log(`displayStyle: ${displayStyle}`);
-        
-
-		// if (displayStyle != 'block' && el.parentElement) {
-		// 	container = this.getContainerDimensions(el.parentElement);
-		// } else {
-		// 	container.width = el.clientWidth;
-		// 	container.height = el.clientHeight;
-		// }
-
-		// // switch (el.tagName.toLowerCase()) {
-		// // 	case 'section':
-		// // 	case 'div':
-		// // 		container.width = el.clientWidth;
-		// // 		container.height = el.clientHeight;
-		// // 		break;
-		// //
-		// // 	default:
-		// // 		if (el.parentElement) {
-		// // 			container = this.getContainerDimensions(el.parentElement);
-		// // 		}
-		// //
-		// // 		break;
-		// // }
-
-        // return container;
     }
 
     getElementWidth(el) {
-        // console.log('getting parent element width', el.tagName.toLowerCase());
-
         const displayStyle = el.style.display ? el.style.display : window.getComputedStyle(el).display;
 
         if (displayStyle != 'block' && el.parentElement) {
@@ -411,9 +342,7 @@ class ImageTools {
 
 		this.debug(idealImage);
 
-        console.info(`setting image: ${idealImage.url}`);
-
-		if (elType == 'img') {
+        if (elType == 'img') {
 			item.el.setAttribute('src', idealImage.url);
 		} else {
 			item.el.style.backgroundImage = `url('${idealImage.url}')`;
@@ -442,19 +371,9 @@ class ImageTools {
             	continue;
             }
 
-            // this.debugInfo('choosing image', item);
-			console.info('lazy loading', item);
+            this.debugInfo('choosing image', item);
+			
             this.chooseImage(item);
-		}
-
-        // this.elementCache.forEach(item => {
-        //     if (item.loaded || (item.options.lazyLoad && !this.canLazyLoad(item))) {
-        //         return;
-        //     }
-		//
-        //     // this.debugInfo('choosing image', item);
-		// 	console.log('lazy loading', item);
-        //     this.chooseImage(item);
-        // });
+        }
     }
 }
