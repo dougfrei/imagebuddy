@@ -4,22 +4,21 @@ const uglify 		= require('gulp-uglify');
 const sourcemaps 	= require('gulp-sourcemaps');
 const babel 		= require('gulp-babel');
 const plumber 		= require('gulp-plumber');
-const jshint 		= require('gulp-jshint');
 const notify 		= require('gulp-notify');
 const browserSync   = require('browser-sync').create();
+const eslint        = require('gulp-eslint');
 
+gulp.task('lint', function() {
+    return gulp.src('source/imageTools.js')
+        .pipe(eslint())
+        .pipe(eslint.format())
+        .pipe(eslint.failAfterError());
+});
 
 gulp.task('build-es5', function() {
     return gulp.src('source/imageTools.js')
         .pipe(plumber({
             errorHandler: notify.onError('JS: <%= error.message %>')
-        }))
-        .pipe(jshint({
-            esversion: 6,
-            browser: true
-        }))
-        .pipe(jshint.reporter('jshint-stylish', {
-            beep: true
         }))
         .pipe(sourcemaps.init())
 		.pipe(babel({
@@ -39,13 +38,6 @@ gulp.task('build', function() {
     return gulp.src('source/imageTools.js')
         .pipe(plumber({
             errorHandler: notify.onError('JS: <%= error.message %>')
-        }))
-        .pipe(jshint({
-            esversion: 6,
-            browser: true
-        }))
-        .pipe(jshint.reporter('jshint-stylish', {
-            beep: true
         }))
         .pipe(sourcemaps.init())
 		.pipe(uglify())
@@ -72,8 +64,8 @@ gulp.task('browser-sync', function() {
     });
 });
 
-gulp.task('default', ['build-es5', 'browser-sync'], function() {
-    gulp.watch('source/imageTools.js', ['build-es5']);
+gulp.task('default', ['lint', 'build-es5', 'browser-sync'], function() {
+    gulp.watch('source/imageTools.js', ['lint', 'build-es5']);
 
     // gulp.watch('dist/imageTools.es5.min.js').on('change', browserSync.reload);
     // gulp.watch('examples/*').on('change', browserSync.reload);

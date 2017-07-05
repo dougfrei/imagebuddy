@@ -2,167 +2,174 @@
  * Object.assign polyfill for IE
  */
 if (typeof Object.assign != 'function') {
-    Object.assign = function(target, varArgs) { // .length of function is 2
-        'use strict';
-        
-        if (target === null) { // TypeError if undefined or null
-            throw new TypeError('Cannot convert undefined or null to object');
-        }
+	Object.assign = function(target, varArgs) { // .length of function is 2
+		'use strict';
 
-        var to = Object(target);
+		if (target === null) { // TypeError if undefined or null
+			throw new TypeError('Cannot convert undefined or null to object');
+		}
 
-        for (var index = 1; index < arguments.length; index++) {
-            var nextSource = arguments[index];
+		var to = Object(target);
 
-            if (nextSource !== null) { // Skip over if undefined or null
-                for (var nextKey in nextSource) {
-                    // Avoid bugs when hasOwnProperty is shadowed
-                    if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
-                        to[nextKey] = nextSource[nextKey];
-                    }
-                }
-            }
-        }
+		for (var index = 1; index < arguments.length; index++) {
+			var nextSource = arguments[index];
 
-        return to;
-    };
+			if (nextSource !== null) { // Skip over if undefined or null
+				for (var nextKey in nextSource) {
+					// Avoid bugs when hasOwnProperty is shadowed
+					if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
+						to[nextKey] = nextSource[nextKey];
+					}
+				}
+			}
+		}
+
+		return to;
+	};
 }
 
 /**
  * Event constructor polyfill for IE
  */
-(function () {
-    if (typeof window.CustomEvent === 'function')
-        return false;
+if (typeof window.CustomEvent !== 'function') {
+	const CustomEvent = function(event, params) {
+		const evtParams = params || { bubbles: false, cancelable: false, detail: undefined };
+		const evt = document.createEvent('CustomEvent');
 
-    function CustomEvent(event, params) {
-        params = params || { bubbles: false, cancelable: false, detail: undefined };
-        var evt = document.createEvent('CustomEvent');
-        evt.initCustomEvent(event, params.bubbles, params.cancelable, params.detail);
-        
-        return evt;
-    }
+		evt.initCustomEvent(event, evtParams.bubbles, evtParams.cancelable, evtParams.detail);
 
-    CustomEvent.prototype = window.Event.prototype;
+		return evt;
+	};
 
-    window.CustomEvent = CustomEvent;
-})();
+	CustomEvent.prototype = window.Event.prototype;
+
+	window.CustomEvent = CustomEvent;
+}
 
 /**
  * ImageTools class
  */
 class ImageTools {
-    /**
-     * Constructor
-     *
-     * @param {object} opts
-     */
-    constructor(opts) {
-        this.eventsRunning = {};
-        this.elementCache = [];
+	/**
+	 * Constructor
+	 *
+	 * @param {object} opts
+	 */
+	constructor(opts) {
+		this.eventsRunning = {};
+		this.elementCache = [];
 
-        this.config = {
-            events: {
-                resize: 'imageToolsResize',
-                scroll: 'imageToolsScroll'
-            },
-            attributes: {
-                // enabled: 'data-it-enabled',
-                sources: 'data-it-sources',
-                lazyLoad: 'data-it-lazyload',
+		this.config = {
+			events: {
+				resize: 'imageToolsResize',
+				scroll: 'imageToolsScroll'
+			},
+			attributes: {
+				// enabled: 'data-it-enabled',
+				sources: 'data-it-sources',
+				lazyLoad: 'data-it-lazyload',
 				lazyLoadThreshold: 'data-it-lazyload-threshold',
 				matchDPR: 'data-it-match-dpr',
-                noHeight: 'data-it-no-height'
-            }
-        };
+				noHeight: 'data-it-no-height'
+			}
+		};
 
-        this.opts = Object.assign({
-            debug: false,
-            matchDPR: true,
-            lazyLoad: true,
-            lazyLoadThreshold: 100
-        }, opts);
+		this.opts = Object.assign({
+			debug: false,
+			matchDPR: true,
+			lazyLoad: true,
+			lazyLoadThreshold: 100
+		}, opts);
 
-        this.setupEventListeners();
+		// const defaults = {
+		// 	debug: false,
+		// 	matchDPR: true,
+		// 	lazyLoad: true,
+		// 	lazyLoadThreshold: 100
+		// };
+
+		// this.opts = { ...defaults, ...opts };
+
+		this.setupEventListeners();
 		this.update();
-    }
+	}
 
 	update() {
-        this.getElements();
+		this.getElements();
 
-        for (var i = 0; i < this.elementCache.length; i++) {
+		for (let i = 0; i < this.elementCache.length; i++) {
 			const item = this.elementCache[i];
 
-            if (item.loaded || (item.options.lazyLoad && this.canLazyLoad(item) === false)) {
-                continue;
-            }
+			if (item.loaded || (item.options.lazyLoad && this.canLazyLoad(item) === false)) {
+				continue;
+			}
 
-            this.chooseImage(item);
+			this.chooseImage(item);
 		}
 	}
 
-    /**
-     * Test if an item is lazy load-able
-     *
-     * @param {object} item
-     */
-    canLazyLoad(item) {
-        if (!item.options.lazyLoad || item.loaded) {
-            return false;
-        }
+	/**
+	 * Test if an item is lazy load-able
+	 *
+	 * @param {object} item
+	 */
+	canLazyLoad(item) {
+		if (!item.options.lazyLoad || item.loaded) {
+			return false;
+		}
 
-        if (item.el.offsetTop - (window.pageYOffset + window.innerHeight) <= item.options.lazyLoadThreshold) {
-            return true;
-        }
+		if (item.el.offsetTop - (window.pageYOffset + window.innerHeight) <= item.options.lazyLoadThreshold) {
+			return true;
+		}
 
-        return false;
-    }
+		return false;
+	}
 
-    /**
-     * Setup a throttled event listener
-     *
-     * @param {string} name
-     * @param {function} callback
-     */
-    throttleEventListener(eventName, callback) {
-        if (!this.eventsRunning.hasOwnProperty(eventName)) {
-            this.eventsRunning[eventName] = false;
-        }
+	/**
+	 * Setup a throttled event listener
+	 *
+	 * @param {string} name
+	 * @param {function} callback
+	 */
+	throttleEventListener(eventName, callback) {
+		if (!this.eventsRunning.hasOwnProperty(eventName)) {
+			this.eventsRunning[eventName] = false;
+		}
 
-        window.addEventListener(eventName, () => {
-            if (this.eventsRunning[eventName]) {
-                return;
-            }
+		window.addEventListener(eventName, () => {
+			if (this.eventsRunning[eventName]) {
+				return;
+			}
 
-            this.eventsRunning[eventName] = true;
+			this.eventsRunning[eventName] = true;
 
-            requestAnimationFrame(() => {
-                window.dispatchEvent(new CustomEvent(eventName+'-throttled'));
-                this.eventsRunning[eventName] = false;
-            });
-        });
+			requestAnimationFrame(() => {
+				window.dispatchEvent(new CustomEvent(`${eventName}-throttled`));
+				this.eventsRunning[eventName] = false;
+			});
+		});
 
-        if (typeof callback == 'function') {
-            window.addEventListener(eventName+'-throttled', callback);
-        }
-    }
+		if (typeof callback === 'function') {
+			window.addEventListener(`${eventName}-throttled`, callback);
+		}
+	}
 
-    /**
-     * Setup and throttle event listeners -- scroll & resize
-     */
-    setupEventListeners() {
-        this.throttleEventListener('resize', this.resizeHandler.bind(this));
-        this.throttleEventListener('scroll', this.scrollHandler.bind(this));
-    }
+	/**
+	 * Setup and throttle event listeners -- scroll & resize
+	 */
+	setupEventListeners() {
+		this.throttleEventListener('resize', this.resizeHandler.bind(this));
+		this.throttleEventListener('scroll', this.scrollHandler.bind(this));
+	}
 
-    /**
-     * Print a debug message
-     */
-    debug() {
-        if (this.opts.debug) {
+	/**
+	 * Print a debug message
+	 */
+	debug() {
+		if (this.opts.debug) {
 			console.log(...arguments);
-        }
-    }
+		}
+	}
 
 	debugInfo() {
 		if (this.opts.debug) {
@@ -176,129 +183,127 @@ class ImageTools {
 		}
 	}
 
-    /**
-     * Get all the HTML elements configured for image selection
-     */
-    getElements() {
-        this.elementCache = [];
+	/**
+	 * Get all the HTML elements configured for image selection
+	 */
+	getElements() {
+		this.elementCache = [];
 
 		const foundEls = document.querySelectorAll(`[${this.config.attributes.sources}]`);
 
-		for (var i =0; i < foundEls.length; i++) {
+		for (let i = 0; i < foundEls.length; i++) {
 			const el = foundEls[i];
 
-            this.elementCache.push({
-                el: el,
-                elType: el.tagName.toLowerCase(),
-                // container: this.getContainerDimensions(el),
-                sizes: this.getSizes(el.getAttribute(this.config.attributes.sources)),
-                loaded: false, // FIXME: figure out a way to check if images are already loaded when this array is created
+			this.elementCache.push({
+				el: el,
+				elType: el.tagName.toLowerCase(),
+				// container: this.getContainerDimensions(el),
+				sizes: this.getSizes(el.getAttribute(this.config.attributes.sources)),
+				loaded: false, // FIXME: figure out a way to check if images are already loaded when this array is created
 				options: {
-					lazyLoad: el.getAttribute(this.config.attributes.lazyLoad) ? el.getAttribute(this.config.attributes.lazyLoad) == 'true' : this.opts.lazyLoad,
+					lazyLoad: el.getAttribute(this.config.attributes.lazyLoad) ? el.getAttribute(this.config.attributes.lazyLoad).toLowerCase() === 'true' : this.opts.lazyLoad,
 					lazyLoadThreshold: el.getAttribute(this.config.attributes.lazyLoadThreshold) ? el.getAttribute(this.config.attributes.lazyLoadThreshold) : this.opts.lazyLoadThreshold,
 					matchDPR: el.getAttribute(this.config.attributes.matchDPR) ? el.getAttribute(this.config.attributes.matchDPR) : this.opts.matchDPR,
-                    noHeight: el.getAttribute(this.config.attributes.noHeight) ? el.getAttribute(this.config.attributes.noHeight) : false
+					noHeight: el.getAttribute(this.config.attributes.noHeight) ? el.getAttribute(this.config.attributes.noHeight) : false
 				}
-            });
+			});
 		}
 
-        this.debugInfo(this.elementCache);
-    }
+		this.debugInfo(this.elementCache);
+	}
 
-    /**
-     * Get container dimensions of an HTML element
-     *
-     * @param {object} el
-     * @param {bool} noHeight
-     */
-    getContainerDimensions(el, noHeight) {
-        // FIXME:
-        // this is tricky since an IMG tag may not have a set height and we can't rely on
-        // its container for that height value
-        // I'm thinking the best way to tackle this is to see if the element has a height
-        // specified -- if not we'll disregard the height value
-        //      - how does a 100% height work with this?
+	/**
+	 * Get container dimensions of an HTML element
+	 *
+	 * @param {object} el
+	 * @param {bool} noHeight
+	 */
+	getContainerDimensions(el, noHeight) {
+		// FIXME:
+		// this is tricky since an IMG tag may not have a set height and we can't rely on
+		// its container for that height value
+		// I'm thinking the best way to tackle this is to see if the element has a height
+		// specified -- if not we'll disregard the height value
+		//      - how does a 100% height work with this?
 
-        // el.clientHeight works fine on all tags except IMG
+		// el.clientHeight works fine on all tags except IMG
 
-        const displayStyle = el.style.display ? el.style.display : window.getComputedStyle(el).display;
+		const displayStyle = el.style.display ? el.style.display : window.getComputedStyle(el).display;
 
-        let container = {
-            width: (displayStyle == 'block') ? el.clientWidth : 0,
-            height: el.clientHeight ? el.clientHeight : 0 // TODO: try `parseInt(window.getComputedStyle(el).height)` here
-        };
+		const container = {
+			width: (displayStyle == 'block') ? el.clientWidth : 0,
+			height: el.clientHeight ? el.clientHeight : 0 // TODO: try `parseInt(window.getComputedStyle(el).height)` here
+		};
 
-        if (!container.width) {
-            container.width = this.getElementWidth(el.parentElement);
-        }
+		if (!container.width) {
+			container.width = this.getElementWidth(el.parentElement);
+		}
 
-        if (noHeight) {
-            container.height = 0;
-        }
+		if (noHeight) {
+			container.height = 0;
+		}
 
-        return container;
-    }
+		return container;
+	}
 
-    /**
-     * Return the width of a tested element
-     * This will examine a style attribute tag first and fallback to the computed style
-     * 
-     * @param {object} el 
-     */
-    getElementWidth(el) {
-        const displayStyle = el.style.display ? el.style.display : window.getComputedStyle(el).display;
+	/**
+	 * Return the width of a tested element
+	 * This will examine a style attribute tag first and fallback to the computed style
+	 * 
+	 * @param {object} el 
+	 */
+	getElementWidth(el) {
+		const displayStyle = el.style.display ? el.style.display : window.getComputedStyle(el).display;
 
-        if (displayStyle != 'block' && el.parentElement) {
-            return this.getElementWidth(el.parentElement);
-        }
+		if (displayStyle != 'block' && el.parentElement) {
+			return this.getElementWidth(el.parentElement);
+		}
 
-        return el.clientWidth;
-    }
+		return el.clientWidth;
+	}
 
-    /**
-     * Create an array of image sizes from the "data-it-sources" attribute
-     *
-     * @param {string} rImgSources
-     */
-    getSizes(rImgSources) {
-        return rImgSources
-            .split(';')
-            .map(sizeEl => {
-                const [url, width, height] = sizeEl.split(',');
-                return { url: url, width: parseInt(width), height: parseInt(height) };
-            })
-            .sort((a, b) => {
-                if (a.width >= a.height) {
-                    return a.width > b.width ? 1 : -1;
-                } else {
-                    return a.height > b.height ? 1 : -1;
-                }
-            });
-    }
+	/**
+	 * Create an array of image sizes from the "data-it-sources" attribute
+	 *
+	 * @param {string} rImgSources
+	 */
+	getSizes(rImgSources) {
+		return rImgSources
+			.split(';')
+			.map(sizeEl => {
+				const [url, width, height] = sizeEl.split(',');
+				return { url: url, width: parseInt(width), height: parseInt(height) };
+			})
+			.sort((a, b) => {
+				if (a.width >= a.height) {
+					return a.width > b.width ? 1 : -1;
+				} else {
+					return a.height > b.height ? 1 : -1;
+				}
+			});
+	}
 
 	calculateUsabilityScore(containerWidth, containerHeight, imageWidth, imageHeight) {
-		const isLandscape = containerWidth > containerHeight;
-
-        this.debug(`container: ${containerWidth}x${containerHeight}`, `image: ${imageWidth}x${imageHeight}`);
+		this.debug(`container: ${containerWidth}x${containerHeight}`, `image: ${imageWidth}x${imageHeight}`);
 
 		let score = 1;
 
 		if (imageWidth >= containerWidth) {
 			score *= containerWidth / imageWidth;
 		} else {
-			score -= Math.abs(containerWidth-imageWidth);
+			score -= Math.abs(containerWidth - imageWidth);
 		}
 
-        if (containerHeight) {
-            if (imageHeight >= containerHeight) {
-                score *= containerHeight / imageHeight;
-            } else {
-                score -= Math.abs(containerHeight-imageHeight);
-            }
-        }
+		if (containerHeight) {
+			if (imageHeight >= containerHeight) {
+				score *= containerHeight / imageHeight;
+			} else {
+				score -= Math.abs(containerHeight - imageHeight);
+			}
+		}
 
-
-
+		// const isLandscape = containerWidth > containerHeight;
+		
 		// let containerRatio = isLandscape ? containerWidth / containerHeight : containerHeight / containerWidth;
 		// let imageRatio = isLandscape ? imageWidth / imageHeight : imageHeight / imageWidth;
 		//
@@ -317,23 +322,23 @@ class ImageTools {
 		return score;
 	}
 
-    /**
-     * Choose the appropriate image and apply it to the element
-     *
-     * @param {object} item
-     */
-    chooseImage(item) {
+	/**
+	 * Choose the appropriate image and apply it to the element
+	 *
+	 * @param {object} item
+	 */
+	chooseImage(item) {
 		const sizes = this.getSizes(item.el.getAttribute(this.config.attributes.sources));
-        const elType = item.el.tagName.toLowerCase();
+		const elType = item.el.tagName.toLowerCase();
 
-        const container = this.getContainerDimensions(item.el, item.options.noHeight);
-        
+		const container = this.getContainerDimensions(item.el, item.options.noHeight);
+
 		if (item.options.matchDPR) {
-            container.width *= window.devicePixelRatio;
-            container.height *= window.devicePixelRatio;
-        }
+			container.width *= window.devicePixelRatio;
+			container.height *= window.devicePixelRatio;
+		}
 
-		let scoredSizes = sizes.map(size => {
+		const scoredSizes = sizes.map((size) => {
 			size.score = this.calculateUsabilityScore(container.width, container.height, size.width, size.height);
 
 			return size;
@@ -343,42 +348,42 @@ class ImageTools {
 
 		this.debugTable(scoredSizes);
 
-        let idealImage = scoredSizes[scoredSizes.length-1];
+		const idealImage = scoredSizes[scoredSizes.length-1];
 
 		this.debug(idealImage);
 
-        if (elType == 'img') {
+		if (elType === 'img') {
 			item.el.setAttribute('src', idealImage.url);
 		} else {
 			item.el.style.backgroundImage = `url('${idealImage.url}')`;
 		}
 
-        item.loaded = true;
-    }
+		item.loaded = true;
+	}
 
-    /**
-     * Resize handler
-     */
-    resizeHandler() {
-        // update container sizes
-        this.debug('resizeHandler');
-    }
+	/**
+	 * Resize handler
+	 */
+	resizeHandler() {
+		// update container sizes
+		this.debug('resizeHandler');
+	}
 
-    /**
-     * Scroll handler -- check for lazy load-able images
-     */
-    scrollHandler() {
-        // lazy load images
-		for (var i = 0; i < this.elementCache.length; i++) {
+	/**
+	 * Scroll handler -- check for lazy load-able images
+	 */
+	scrollHandler() {
+		// lazy load images
+		for (let i = 0; i < this.elementCache.length; i++) {
 			const item = this.elementCache[i];
 
 			if (item.loaded || (item.options.lazyLoad && !this.canLazyLoad(item))) {
-            	continue;
-            }
+				continue;
+			}
 
-            this.debugInfo('choosing image', item);
-			
-            this.chooseImage(item);
-        }
-    }
+			this.debugInfo('choosing image', item);
+
+			this.chooseImage(item);
+		}
+	}
 }
