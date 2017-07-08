@@ -7,6 +7,7 @@ const plumber 		= require('gulp-plumber');
 const notify 		= require('gulp-notify');
 const browserSync   = require('browser-sync').create();
 const eslint        = require('gulp-eslint');
+const header        = require('gulp-header');
 
 gulp.task('lint', function() {
     return gulp.src('source/imageTools.js')
@@ -16,17 +17,28 @@ gulp.task('lint', function() {
 });
 
 gulp.task('build-es5', function() {
+    const pkg = require('./package.json');
+    const banner = [
+        '/**',
+        ' * <%= pkg.description %> v<%= pkg.version %> | <%= pkg.license %>',
+        ' * <%= pkg.homepage %>',
+        ' */',
+        ''
+    ].join('\n');
+
     return gulp.src('source/imageTools.js')
         .pipe(plumber({
             errorHandler: notify.onError('JS: <%= error.message %>')
         }))
         .pipe(sourcemaps.init())
 		.pipe(babel({
-            presets: ['es2015']
+            presets: ['es2015'],
+            plugins: ['iife-wrap']
         }))
         .pipe(uglify())
         .pipe($.rename('imageTools.es5.min.js'))
         .pipe(sourcemaps.write('.'))
+        .pipe(header(banner, { pkg: pkg }))
         .pipe(gulp.dest('dist'))
         .pipe(notify({
             message: 'JS compilation complete: <%= file.relative %>',

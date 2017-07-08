@@ -49,7 +49,7 @@ if (typeof window.CustomEvent !== 'function') {
 /**
  * ImageTools class
  */
-class ImageTools {
+window.ImageTools = class {
 	/**
 	 * Constructor
 	 *
