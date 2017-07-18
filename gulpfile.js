@@ -37,8 +37,8 @@ gulp.task('build-es5', function() {
         }))
         .pipe(uglify())
         .pipe($.rename('imageTools.es5.min.js'))
-        .pipe(sourcemaps.write('.'))
-        .pipe(header(banner, { pkg: pkg }))
+		.pipe(header(banner, { pkg: pkg }))
+		.pipe(sourcemaps.write('.'))
         .pipe(gulp.dest('dist'))
         .pipe(notify({
             message: 'JS compilation complete: <%= file.relative %>',
