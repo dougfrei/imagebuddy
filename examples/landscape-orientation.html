@@ -40,7 +40,7 @@
     <div class="banner" data-it-sources="assets/images/landscape-16x9-320x180.jpg,320,180;assets/images/landscape-16x9-533x300.jpg,533,300;assets/images/landscape-16x9-854x480.jpg,854,480;assets/images/landscape-16x9-1280x720.jpg,1280,720;assets/images/landscape-16x9-1440x810.jpg,1440,810;assets/images/landscape-16x9-1920x1080.jpg,1920,1080"></div>
 
     <div class="row small-up-1 medium-up-2 large-up-3">
-        
+
         <div class="columns">
             <div class="post">
                 <img src="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" alt="" class="post-image" data-it-sources="assets/images/landscape-16x9-320x180.jpg,320,180;assets/images/landscape-16x9-533x300.jpg,533,300;assets/images/landscape-16x9-854x480.jpg,854,480;assets/images/landscape-16x9-1280x720.jpg,1280,720;assets/images/landscape-16x9-1440x810.jpg,1440,810;assets/images/landscape-16x9-1920x1080.jpg,1920,1080">
@@ -115,13 +115,18 @@
     <div class="banner" data-it-sources="assets/images/landscape-16x9-320x180.jpg,320,180;assets/images/landscape-16x9-533x300.jpg,533,300;assets/images/landscape-16x9-854x480.jpg,854,480;assets/images/landscape-16x9-1280x720.jpg,1280,720;assets/images/landscape-16x9-1440x810.jpg,1440,810;assets/images/landscape-16x9-1920x1080.jpg,1920,1080"></div>
 
     <script src="../dist/imageTools.es5.min.js"></script>
+	<!-- <script src="../source/imageTools.js"></script> -->
     <script type="text/javascript">
         window.onload = function() {
             window.imageTools = new ImageTools({
                 // debug: true,
                 matchDPR: false,
-                // lazyLoad: true
+                lazyLoad: true
             });
+
+			window.imageTools.on('imageLoad', function(el) {
+				console.log('onImageLoad', el);
+			});
         }
 
         // document.addEventListener('DOMContentLoaded', function() {

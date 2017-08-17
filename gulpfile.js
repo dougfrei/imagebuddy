@@ -8,6 +8,7 @@ const notify 		= require('gulp-notify');
 const browserSync   = require('browser-sync').create();
 const eslint        = require('gulp-eslint');
 const header        = require('gulp-header');
+const iife 			= require('gulp-iife');
 
 gulp.task('lint', function() {
     return gulp.src('source/imageTools.js')
@@ -33,10 +34,11 @@ gulp.task('build-es5', function() {
         .pipe(sourcemaps.init())
 		.pipe(babel({
             presets: ['es2015'],
-            plugins: ['iife-wrap']
+            // plugins: ['iife-wrap']
         }))
         .pipe(uglify())
         .pipe($.rename('imageTools.es5.min.js'))
+		.pipe(iife({ useStrict: false }))
 		.pipe(header(banner, { pkg: pkg }))
 		.pipe(sourcemaps.write('.'))
         .pipe(gulp.dest('dist'))
@@ -47,6 +49,15 @@ gulp.task('build-es5', function() {
 });
 
 gulp.task('build', function() {
+	const pkg = require('./package.json');
+    const banner = [
+        '/**',
+        ' * <%= pkg.description %> v<%= pkg.version %> | <%= pkg.license %>',
+        ' * <%= pkg.homepage %>',
+        ' */',
+        ''
+    ].join('\n');
+
     return gulp.src('source/imageTools.js')
         .pipe(plumber({
             errorHandler: notify.onError('JS: <%= error.message %>')
@@ -54,6 +65,8 @@ gulp.task('build', function() {
         .pipe(sourcemaps.init())
 		.pipe(uglify())
         .pipe($.rename('imageTools.min.js'))
+		.pipe(iife({ useStrict: false }))
+		.pipe(header(banner, { pkg: pkg }))
         .pipe(sourcemaps.write('.'))
         .pipe(gulp.dest('dist'))
         .pipe(notify({
@@ -68,7 +81,8 @@ gulp.task('browser-sync', function() {
             baseDir: './examples/',
             directory: true,
             routes: {
-                '/dist': './dist'
+                '/dist': './dist',
+				// '/source': './source'
             }
         },
         files: ['dist/imageTools.es5.min.js', 'examples/*'],

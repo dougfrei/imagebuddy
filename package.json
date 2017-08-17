@@ -1,6 +1,6 @@
 {
   "name": "imagetools",
-  "version": "0.1.0",
+  "version": "0.2.1",
   "description": "ImageTools",
   "main": "gulpfile.js",
   "devDependencies": {
@@ -14,6 +14,7 @@
     "gulp-babel": "^6.1.2",
     "gulp-eslint": "^4.0.0",
     "gulp-header": "^1.8.8",
+    "gulp-iife": "^0.3.0",
     "gulp-load-plugins": "^1.1.0",
     "gulp-notify": "^2.2.0",
     "gulp-plumber": "^1.1.0",

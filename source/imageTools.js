@@ -58,6 +58,7 @@ window.ImageTools = class {
 	constructor(opts) {
 		this.eventsRunning = {};
 		this.elementCache = [];
+		this.events = [];
 
 		this.config = {
 			events: {
@@ -249,8 +250,8 @@ window.ImageTools = class {
 	/**
 	 * Return the width of a tested element
 	 * This will examine a style attribute tag first and fallback to the computed style
-	 * 
-	 * @param {object} el 
+	 *
+	 * @param {object} el
 	 */
 	getElementWidth(el) {
 		const displayStyle = el.style.display ? el.style.display : window.getComputedStyle(el).display;
@@ -303,7 +304,7 @@ window.ImageTools = class {
 		}
 
 		// const isLandscape = containerWidth > containerHeight;
-		
+
 		// let containerRatio = isLandscape ? containerWidth / containerHeight : containerHeight / containerWidth;
 		// let imageRatio = isLandscape ? imageWidth / imageHeight : imageHeight / imageWidth;
 		//
@@ -328,8 +329,18 @@ window.ImageTools = class {
 	 * @param {object} item
 	 */
 	chooseImage(item) {
+		if (item.isLoading) {
+			return;
+		}
+
+		item.isLoading = true;
+
 		const sizes = this.getSizes(item.el.getAttribute(this.config.attributes.sources));
 		const elType = item.el.tagName.toLowerCase();
+
+		if (elType == 'img' && parseInt(getComputedStyle(item.el).width) <= 1) {
+			item.el.style.width = '100%';
+		}
 
 		const container = this.getContainerDimensions(item.el, item.options.noHeight);
 
@@ -352,13 +363,30 @@ window.ImageTools = class {
 
 		this.debug(idealImage);
 
-		if (elType === 'img') {
-			item.el.setAttribute('src', idealImage.url);
-		} else {
-			item.el.style.backgroundImage = `url('${idealImage.url}')`;
-		}
 
-		item.loaded = true;
+
+		var imageLoader = new Image();
+		var self = this;
+
+		imageLoader.onload = function() {
+			if (elType === 'img') {
+				item.el.setAttribute('src', this.src);
+			} else {
+				item.el.style.backgroundImage = `url('${this.src}')`;
+			}
+
+			item.loaded = true;
+			item.isLoading = false;
+
+			// self.emit('imageLoad', item.el);
+			window.dispatchEvent(new CustomEvent('it-imageLoad', {
+				detail: {
+					el: item.el
+				}
+			}));
+		};
+
+		imageLoader.src = idealImage.url;
 	}
 
 	/**
@@ -384,6 +412,27 @@ window.ImageTools = class {
 			this.debugInfo('choosing image', item);
 
 			this.chooseImage(item);
+		}
+	}
+
+	on(event, listener) {
+		if (typeof this.events[event] !== 'object') {
+			this.events[event] = [];
+		}
+
+		this.events[event].push(listener);
+	}
+
+	emit(event) {
+		var i, listeners, length, args = [].slice.call(arguments, 1);
+
+		if (typeof this.events[event] === 'object') {
+			listeners = this.events[event].slice();
+			length = listeners.length;
+
+			for (i = 0; i < length; i++) {
+				listeners[i].apply(this, args);
+			}
 		}
 	}
 }
