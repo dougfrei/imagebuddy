@@ -202,15 +202,23 @@ window.ImageTools = class {
 				sizes: this.getSizes(el.getAttribute(this.config.attributes.sources)),
 				loaded: false, // FIXME: figure out a way to check if images are already loaded when this array is created
 				options: {
-					lazyLoad: el.getAttribute(this.config.attributes.lazyLoad) ? el.getAttribute(this.config.attributes.lazyLoad).toLowerCase() === 'true' : this.opts.lazyLoad,
+					lazyLoad: el.getAttribute(this.config.attributes.lazyLoad) ? this.parseBooleanString(el.getAttribute(this.config.attributes.lazyLoad)) : this.opts.lazyLoad,
 					lazyLoadThreshold: el.getAttribute(this.config.attributes.lazyLoadThreshold) ? el.getAttribute(this.config.attributes.lazyLoadThreshold) : this.opts.lazyLoadThreshold,
-					matchDPR: el.getAttribute(this.config.attributes.matchDPR) ? el.getAttribute(this.config.attributes.matchDPR) : this.opts.matchDPR,
+					matchDPR: el.getAttribute(this.config.attributes.matchDPR) ? this.parseBooleanString(el.getAttribute(this.config.attributes.matchDPR)) : this.opts.matchDPR,
 					noHeight: el.getAttribute(this.config.attributes.noHeight) ? el.getAttribute(this.config.attributes.noHeight) : false
 				}
 			});
 		}
 
 		this.debugInfo(this.elementCache);
+	}
+
+	parseBooleanString(boolStr) {
+		if (typeof boolStr === 'string' && boolStr.toLowerCase() === 'true') {
+			return true;
+		}
+
+		return Boolean(parseInt(boolStr));
 	}
 
 	/**
