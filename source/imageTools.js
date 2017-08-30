@@ -91,6 +91,19 @@ window.ImageTools = class {
 
 		// this.opts = { ...defaults, ...opts };
 
+		// check for passive event listener support
+		this.passiveSupported = false;
+
+		try {
+			var options = Object.defineProperty({}, 'passive', {
+				get: function() {
+					this.passiveSupported = true;
+				}
+			});
+
+			window.addEventListener('test', null, options);
+		} catch(err) {}
+
 		this.setupEventListeners();
 		this.update();
 	}
@@ -131,8 +144,12 @@ window.ImageTools = class {
 	 *
 	 * @param {string} name
 	 * @param {function} callback
+	 * @param {object} options
 	 */
-	throttleEventListener(eventName, callback) {
+	throttleEventListener(eventName, callback, options) {
+		options.passive = (typeof options.passive === 'undefined') ? true : options.passive;
+		options.capture = (typeof options.capture === 'undefined') ? false : options.capture;
+
 		if (!this.eventsRunning.hasOwnProperty(eventName)) {
 			this.eventsRunning[eventName] = false;
 		}
@@ -148,10 +165,10 @@ window.ImageTools = class {
 				window.dispatchEvent(new CustomEvent(`${eventName}-throttled`));
 				this.eventsRunning[eventName] = false;
 			});
-		});
+		}, this.passiveSupported ? options : options.capture);
 
 		if (typeof callback === 'function') {
-			window.addEventListener(`${eventName}-throttled`, callback);
+			window.addEventListener(`${eventName}-throttled`, callback, this.passiveSupported ? options : options.capture);
 		}
 	}
 
@@ -159,8 +176,8 @@ window.ImageTools = class {
 	 * Setup and throttle event listeners -- scroll & resize
 	 */
 	setupEventListeners() {
-		this.throttleEventListener('resize', this.resizeHandler.bind(this));
-		this.throttleEventListener('scroll', this.scrollHandler.bind(this));
+		this.throttleEventListener('resize', this.resizeHandler.bind(this), { passive: true });
+		this.throttleEventListener('scroll', this.scrollHandler.bind(this), { passive: true });
 	}
 
 	/**
