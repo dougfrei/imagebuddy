@@ -75,21 +75,13 @@ window.ImageTools = class {
 			}
 		};
 
+		// create default options and merge any overrides
 		this.opts = Object.assign({
 			debug: false,
 			matchDPR: true,
 			lazyLoad: true,
 			lazyLoadThreshold: 100
 		}, opts);
-
-		// const defaults = {
-		// 	debug: false,
-		// 	matchDPR: true,
-		// 	lazyLoad: true,
-		// 	lazyLoadThreshold: 100
-		// };
-
-		// this.opts = { ...defaults, ...opts };
 
 		// check for passive event listener support
 		this.passiveSupported = false;

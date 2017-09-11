@@ -118,13 +118,13 @@
 	<!-- <script src="../source/imageTools.js"></script> -->
     <script type="text/javascript">
         window.onload = function() {
-            window.imageTools = new ImageTools({
-                // debug: true,
+            var imageTools = new ImageTools({
+                debug: true,
                 matchDPR: false,
                 lazyLoad: true
             });
 
-			window.imageTools.on('imageLoad', function(el) {
+			imageTools.on('imageLoad', function(el) {
 				console.log('onImageLoad', el);
 			});
         }
