@@ -112,6 +112,8 @@ window.ImageTools = class {
 
 			this.chooseImage(item);
 		}
+
+		window.dispatchEvent(new CustomEvent('it-update', {}));
 	}
 
 	/**
