@@ -72,6 +72,11 @@ window.ImageTools = class {
 				lazyLoadThreshold: 'data-it-lazyload-threshold',
 				matchDPR: 'data-it-match-dpr',
 				noHeight: 'data-it-no-height'
+			},
+			classes: {
+				base: 'it__image',
+				loading: 'it__image--loading',
+				loaded: 'it__image--loaded'
 			}
 		};
 
@@ -199,18 +204,26 @@ window.ImageTools = class {
 	 * Get all the HTML elements configured for image selection
 	 */
 	getElements() {
-		this.elementCache = [];
+		// this.elementCache = [];
 
 		const foundEls = document.querySelectorAll(`[${this.config.attributes.sources}]`);
 
 		for (let i = 0; i < foundEls.length; i++) {
 			const el = foundEls[i];
 
+			if (el.getAttribute('data-it-cached')) {
+				continue;
+			}
+
+			el.setAttribute('data-it-cached', 1);
+			el.classList.add(this.config.classes.base);
+
 			this.elementCache.push({
 				el: el,
 				elType: el.tagName.toLowerCase(),
 				// container: this.getContainerDimensions(el),
 				sizes: this.getSizes(el.getAttribute(this.config.attributes.sources)),
+				currentSize: false,
 				loaded: false, // FIXME: figure out a way to check if images are already loaded when this array is created
 				options: {
 					lazyLoad: el.getAttribute(this.config.attributes.lazyLoad) ? this.parseBooleanString(el.getAttribute(this.config.attributes.lazyLoad)) : this.opts.lazyLoad,
@@ -289,9 +302,10 @@ window.ImageTools = class {
 	 */
 	getSizes(rImgSources) {
 		return rImgSources
-			.split(';')
+			.split(',')
 			.map(sizeEl => {
-				const [url, width, height] = sizeEl.split(',');
+				const [url, width, height] = sizeEl.trim().split(' ');
+
 				return { url: url, width: parseInt(width), height: parseInt(height) };
 			})
 			.sort((a, b) => {
@@ -382,30 +396,37 @@ window.ImageTools = class {
 
 		this.debug(idealImage);
 
-
-
-		var imageLoader = new Image();
-		var self = this;
-
-		imageLoader.onload = function() {
-			if (elType === 'img') {
-				item.el.setAttribute('src', this.src);
-			} else {
-				item.el.style.backgroundImage = `url('${this.src}')`;
-			}
-
+		this.loadImage(item.el, idealImage.url, () => {
 			item.loaded = true;
 			item.isLoading = false;
+			item.currentSize = { width: idealImage.width, height: idealImage.height };
+			item.el.classList.remove(this.config.classes.loading);
+			item.el.classList.add(this.config.classes.loaded);
 
-			// self.emit('imageLoad', item.el);
 			window.dispatchEvent(new CustomEvent('it-imageLoad', {
 				detail: {
 					el: item.el
 				}
 			}));
+		});
+	}
+
+	loadImage(el, imgSrc, callback) {
+		const imageLoader = new Image();
+
+		imageLoader.onload = function() {
+			if (el.tagName.toLowerCase() === 'img') {
+				el.setAttribute('src', this.src);
+			} else {
+				el.style.backgroundImage = `url('${this.src}')`;
+			}
+
+			if (callback && typeof callback == 'function') {
+				callback();
+			}
 		};
 
-		imageLoader.src = idealImage.url;
+		imageLoader.src = imgSrc;
 	}
 
 	/**
@@ -413,7 +434,20 @@ window.ImageTools = class {
 	 */
 	resizeHandler() {
 		// update container sizes
-		this.debug('resizeHandler');
+		for (let i = 0; i < this.elementCache.length; i++) {
+			const item = this.elementCache[i];
+
+			if (!item.loaded) {
+				continue;
+			}
+
+			const dimensions = this.getContainerDimensions(item.el);
+
+			if (dimensions.width > item.currentSize.width || (!item.noHeight && dimensions.height > item.currentSize.height)) {
+				this.debug('swapping image');
+				this.chooseImage(item);
+			}
+		}
 	}
 
 	/**
