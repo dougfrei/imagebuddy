@@ -58,7 +58,12 @@ window.ImageTools = class {
 	constructor(opts) {
 		this.eventsRunning = {};
 		this.elementCache = [];
+		this.elements = {
+			queue: [],
+			loaded: []
+		};
 		this.events = [];
+		this.currentCacheId = 0;
 
 		this.config = {
 			events: {
@@ -105,18 +110,54 @@ window.ImageTools = class {
 		this.update();
 	}
 
-	update() {
-		this.getElements();
+	get nextCacheId() {
+		this.currentCacheId = this.currentCacheId + 1;
 
-		for (let i = 0; i < this.elementCache.length; i++) {
-			const item = this.elementCache[i];
+		return this.currentCacheId;
+	}
 
-			if (item.loaded || (item.options.lazyLoad && this.canLazyLoad(item) === false)) {
+	processElementQueue() {
+		// console.log('processing queue', this.elements.queue.length, this.elements.loaded.length);
+
+		if (!this.elements.queue.length) {
+			return;
+		}
+
+		for (let i = 0; i < this.elements.queue.length; i++) {
+			const item = this.elements.queue[i];
+
+			if (item.options.lazyLoad && this.canLazyLoad(item) === false) {
+				// console.log('cannot lazyload item at this time', item, item.offsetTop, (window.pageYOffset + window.innerHeight), item.offsetTop - (window.pageYOffset + window.innerHeight), item.options.lazyLoadThreshold);
 				continue;
 			}
 
 			this.chooseImage(item);
+
+			// move to loaded array
+			this.elements.queue.splice(i, 1);
+			this.elements.loaded.push(item);
+			
+			i--;
 		}
+	}
+
+	update() {
+		// this.elementCache = this.getElements();
+		const newElements = this.getElements();
+
+		this.elements.queue = this.elements.queue.concat(newElements);
+		this.debugInfo(this.elements.queue);
+
+		this.processElementQueue();
+		// for (let i = 0; i < this.elementCache.length; i++) {
+		// 	const item = this.elementCache[i];
+
+		// 	if (item.loaded || (item.options.lazyLoad && this.canLazyLoad(item) === false)) {
+		// 		continue;
+		// 	}
+
+		// 	this.chooseImage(item);
+		// }
 
 		window.dispatchEvent(new CustomEvent('it-update', {}));
 	}
@@ -127,13 +168,20 @@ window.ImageTools = class {
 	 * @param {object} item
 	 */
 	canLazyLoad(item) {
+		// console.log('canLazyLoad', item.offsetTop, item);
+
 		if (!item.options.lazyLoad || item.loaded) {
+			// console.log("\titem is either loaded or not set to lazy load");
 			return false;
 		}
 
-		if (item.el.offsetTop - (window.pageYOffset + window.innerHeight) <= item.options.lazyLoadThreshold) {
+		// if (item.el.offsetTop - (window.pageYOffset + window.innerHeight) <= item.options.lazyLoadThreshold) {
+		if (item.offsetTop - (window.pageYOffset + window.innerHeight) <= item.options.lazyLoadThreshold) {
+			// console.log("\titem can be lazy loaded", item.offsetTop, (window.pageYOffset + window.innerHeight), item.options.lazyLoadThreshold);
 			return true;
 		}
+
+		// console.log("\titem cannot be lazy loaded at this time");
 
 		return false;
 	}
@@ -200,27 +248,36 @@ window.ImageTools = class {
 		}
 	}
 
+	calculateElementTopOffset(el) {
+		return el.getBoundingClientRect().top + (window.pageYOffset || document.documentElement.scrollTop);
+	}
+
 	/**
 	 * Get all the HTML elements configured for image selection
 	 */
 	getElements() {
-		// this.elementCache = [];
-
+		const elements = [];
 		const foundEls = document.querySelectorAll(`[${this.config.attributes.sources}]`);
 
 		for (let i = 0; i < foundEls.length; i++) {
 			const el = foundEls[i];
+			// const offsetTop = el.getBoundingClientRect().top + (window.pageYOffset || document.documentElement.scrollTop);
 
-			if (el.getAttribute('data-it-cached')) {
+			if (el.getAttribute('data-it-cache-id')) {
 				continue;
 			}
 
-			el.setAttribute('data-it-cached', 1);
+			el.setAttribute('data-it-cache-id', this.nextCacheId);
 			el.classList.add(this.config.classes.base);
 
-			this.elementCache.push({
+			elements.push({
 				el: el,
 				elType: el.tagName.toLowerCase(),
+				cacheId: el.getAttribute('data-it-cache-id'),
+				offsetTop: this.calculateElementTopOffset(el),
+				// offsetTop: function () {
+				// 	return this.el.getBoundingClientRect().top + (window.pageYOffset || document.documentElement.scrollTop);
+				// },
 				// container: this.getContainerDimensions(el),
 				sizes: this.getSizes(el.getAttribute(this.config.attributes.sources)),
 				currentSize: false,
@@ -234,7 +291,7 @@ window.ImageTools = class {
 			});
 		}
 
-		this.debugInfo(this.elementCache);
+		return elements;
 	}
 
 	parseBooleanString(boolStr) {
@@ -434,20 +491,35 @@ window.ImageTools = class {
 	 */
 	resizeHandler() {
 		// update container sizes
-		for (let i = 0; i < this.elementCache.length; i++) {
-			const item = this.elementCache[i];
+		// for (let i = 0; i < this.elementCache.length; i++) {
+		// 	const item = this.elementCache[i];
 
-			if (!item.loaded) {
-				continue;
-			}
+		// 	if (!item.loaded) {
+		// 		continue;
+		// 	}
+
+		// 	const dimensions = this.getContainerDimensions(item.el);
+
+		// 	if (dimensions.width > item.currentSize.width || (!item.noHeight && dimensions.height > item.currentSize.height)) {
+		// 		this.debug('swapping image');
+		// 		this.chooseImage(item);
+		// 	}
+		// }
+
+		// cycle through loaded images and see if we need to select a different source
+		for (let i = 0; i < this.elements.loaded; i++) {
+			const item = this.elements.loaded[i];
 
 			const dimensions = this.getContainerDimensions(item.el);
-
+			
 			if (dimensions.width > item.currentSize.width || (!item.noHeight && dimensions.height > item.currentSize.height)) {
 				this.debug('swapping image');
 				this.chooseImage(item);
 			}
 		}
+
+		// load any unprocessed cache elements
+		this.processElementQueue();
 	}
 
 	/**
@@ -455,17 +527,19 @@ window.ImageTools = class {
 	 */
 	scrollHandler() {
 		// lazy load images
-		for (let i = 0; i < this.elementCache.length; i++) {
-			const item = this.elementCache[i];
+		this.processElementQueue();
 
-			if (item.loaded || (item.options.lazyLoad && !this.canLazyLoad(item))) {
-				continue;
-			}
+		// for (let i = 0; i < this.elementCache.length; i++) {
+		// 	const item = this.elementCache[i];
 
-			this.debugInfo('choosing image', item);
+		// 	if (item.loaded || (item.options.lazyLoad && !this.canLazyLoad(item))) {
+		// 		continue;
+		// 	}
 
-			this.chooseImage(item);
-		}
+		// 	this.debugInfo('choosing image', item);
+
+		// 	this.chooseImage(item);
+		// }
 	}
 
 	on(event, listener) {
