@@ -1,3 +1,5 @@
+/* global module */
+
 /**
  * Object.assign polyfill for IE
  */
@@ -49,7 +51,7 @@ if (typeof window.CustomEvent !== 'function') {
 /**
  * ImageTools class
  */
-window.ImageTools = class {
+module.exports = class {
 	/**
 	 * Constructor
 	 *
@@ -507,7 +509,7 @@ window.ImageTools = class {
 		// }
 
 		// cycle through loaded images and see if we need to select a different source
-		for (let i = 0; i < this.elements.loaded; i++) {
+		for (let i = 0; i < this.elements.loaded.length; i++) {
 			const item = this.elements.loaded[i];
 
 			const dimensions = this.getContainerDimensions(item.el);
