@@ -52,3 +52,7 @@ window.imageTools.update();
 ## Future Features
 * Browser resize detection and loading of new images if needed
 * MutationObserver for detection of elements with `data-it-sources` attributes that have been dynamically added
+
+## Changelog
+### 0.3.3
+* Added `data-it-no-cache` attribute option that can help with plugins like Swiper. In this case, Swiper creates duplicate slides in its loop mode that clone the image element after a cache id is setup but before an image URL is chosen. This results in blank slides at the beginning/end of a loop that will never have images selected.

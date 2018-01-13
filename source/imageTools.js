@@ -265,7 +265,7 @@ module.exports = class {
 			const el = foundEls[i];
 			// const offsetTop = el.getBoundingClientRect().top + (window.pageYOffset || document.documentElement.scrollTop);
 
-			if (el.getAttribute('data-it-cache-id')) {
+			if (el.getAttribute('data-it-cache-id') && !el.hasAttribute('data-it-no-cache')) {
 				continue;
 			}
 

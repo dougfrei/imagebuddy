@@ -1,6 +1,6 @@
 {
   "name": "imagetools",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "ImageTools",
   "main": "source/imageTools.js",
   "devDependencies": {
