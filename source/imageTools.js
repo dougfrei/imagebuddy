@@ -1,57 +1,12 @@
-/* global module */
+import { polyfillObjectAssign, polyfillCustomEvent } from './polyfills';
 
-/**
- * Object.assign polyfill for IE
- */
-if (typeof Object.assign != 'function') {
-	Object.assign = function(target, varArgs) { // .length of function is 2
-		'use strict';
-
-		if (target === null) { // TypeError if undefined or null
-			throw new TypeError('Cannot convert undefined or null to object');
-		}
-
-		var to = Object(target);
-
-		for (var index = 1; index < arguments.length; index++) {
-			var nextSource = arguments[index];
-
-			if (nextSource !== null) { // Skip over if undefined or null
-				for (var nextKey in nextSource) {
-					// Avoid bugs when hasOwnProperty is shadowed
-					if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
-						to[nextKey] = nextSource[nextKey];
-					}
-				}
-			}
-		}
-
-		return to;
-	};
-}
-
-/**
- * Event constructor polyfill for IE
- */
-if (typeof window.CustomEvent !== 'function') {
-	const CustomEvent = function(event, params) {
-		const evtParams = params || { bubbles: false, cancelable: false, detail: undefined };
-		const evt = document.createEvent('CustomEvent');
-
-		evt.initCustomEvent(event, evtParams.bubbles, evtParams.cancelable, evtParams.detail);
-
-		return evt;
-	};
-
-	CustomEvent.prototype = window.Event.prototype;
-
-	window.CustomEvent = CustomEvent;
-}
+polyfillObjectAssign();
+polyfillCustomEvent();
 
 /**
  * ImageTools class
  */
-module.exports = class {
+class ImageTools {
 	/**
 	 * Constructor
 	 *
@@ -99,7 +54,7 @@ module.exports = class {
 		this.passiveSupported = false;
 
 		try {
-			var options = Object.defineProperty({}, 'passive', {
+			const options = Object.defineProperty({}, 'passive', {
 				get: function() {
 					this.passiveSupported = true;
 				}
@@ -119,8 +74,6 @@ module.exports = class {
 	}
 
 	processElementQueue() {
-		// console.log('processing queue', this.elements.queue.length, this.elements.loaded.length);
-
 		if (!this.elements.queue.length) {
 			return;
 		}
@@ -129,7 +82,6 @@ module.exports = class {
 			const item = this.elements.queue[i];
 
 			if (item.options.lazyLoad && this.canLazyLoad(item) === false) {
-				// console.log('cannot lazyload item at this time', item, item.offsetTop, (window.pageYOffset + window.innerHeight), item.offsetTop - (window.pageYOffset + window.innerHeight), item.options.lazyLoadThreshold);
 				continue;
 			}
 
@@ -143,24 +95,21 @@ module.exports = class {
 		}
 	}
 
-	update() {
-		// this.elementCache = this.getElements();
+	update(opts = {}) {
 		const newElements = this.getElements();
+		const updateOffsetTop = opts.updateOffsetTop || false;
 
 		this.elements.queue = this.elements.queue.concat(newElements);
 		this.debugInfo(this.elements.queue);
 
+		if (updateOffsetTop) {
+			for (let i = 0; i < this.elements.queue.length; i++) {
+				this.elements.queue[i].offsetTop = this.calculateElementTopOffset(this.elements.queue[i].el);
+			}
+		}
+
 		this.processElementQueue();
-		// for (let i = 0; i < this.elementCache.length; i++) {
-		// 	const item = this.elementCache[i];
-
-		// 	if (item.loaded || (item.options.lazyLoad && this.canLazyLoad(item) === false)) {
-		// 		continue;
-		// 	}
-
-		// 	this.chooseImage(item);
-		// }
-
+		
 		window.dispatchEvent(new CustomEvent('it-update', {}));
 	}
 
@@ -170,20 +119,13 @@ module.exports = class {
 	 * @param {object} item
 	 */
 	canLazyLoad(item) {
-		// console.log('canLazyLoad', item.offsetTop, item);
-
 		if (!item.options.lazyLoad || item.loaded) {
-			// console.log("\titem is either loaded or not set to lazy load");
 			return false;
 		}
 
-		// if (item.el.offsetTop - (window.pageYOffset + window.innerHeight) <= item.options.lazyLoadThreshold) {
 		if (item.offsetTop - (window.pageYOffset + window.innerHeight) <= item.options.lazyLoadThreshold) {
-			// console.log("\titem can be lazy loaded", item.offsetTop, (window.pageYOffset + window.innerHeight), item.options.lazyLoadThreshold);
 			return true;
 		}
-
-		// console.log("\titem cannot be lazy loaded at this time");
 
 		return false;
 	}
@@ -269,6 +211,12 @@ module.exports = class {
 				continue;
 			}
 
+			// attribute that can be used to ignore specific images when loading
+			// useful for lazy-loading images within sliders
+			if (el.hasAttribute('data-it-ignore')) {
+				continue;
+			}
+
 			el.setAttribute('data-it-cache-id', this.nextCacheId);
 			el.classList.add(this.config.classes.base);
 
@@ -277,10 +225,6 @@ module.exports = class {
 				elType: el.tagName.toLowerCase(),
 				cacheId: el.getAttribute('data-it-cache-id'),
 				offsetTop: this.calculateElementTopOffset(el),
-				// offsetTop: function () {
-				// 	return this.el.getBoundingClientRect().top + (window.pageYOffset || document.documentElement.scrollTop);
-				// },
-				// container: this.getContainerDimensions(el),
 				sizes: this.getSizes(el.getAttribute(this.config.attributes.sources)),
 				currentSize: false,
 				loaded: false, // FIXME: figure out a way to check if images are already loaded when this array is created
@@ -395,23 +339,6 @@ module.exports = class {
 			}
 		}
 
-		// const isLandscape = containerWidth > containerHeight;
-
-		// let containerRatio = isLandscape ? containerWidth / containerHeight : containerHeight / containerWidth;
-		// let imageRatio = isLandscape ? imageWidth / imageHeight : imageHeight / imageWidth;
-		//
-		// let ratioTest = Math.abs(containerRatio - imageRatio);
-		// let widthTest = isLandscape ? Math.abs(imageWidth - containerWidth) : Math.abs(imageHeight - containerHeight);
-		// let widthTest = isLandscape ? imageWidth - containerWidth : imageHeight - containerHeight;
-		// size.score = widthTest * ratioTest;
-
-		// size.containerRatio = containerRatio;
-		// size.imageRatio = imageRatio;
-		// size.ratioTest = ratioTest*10;
-		// size.widthTest = widthTest/10;
-
-		// size.score = 100 - size.widthTest - size.ratioTest;
-
 		return score;
 	}
 
@@ -462,6 +389,8 @@ module.exports = class {
 			item.el.classList.remove(this.config.classes.loading);
 			item.el.classList.add(this.config.classes.loaded);
 
+			this.debug(`dispatching load event: ${item.el.getAttribute('src')}`);
+
 			window.dispatchEvent(new CustomEvent('it-imageLoad', {
 				detail: {
 					el: item.el
@@ -473,7 +402,7 @@ module.exports = class {
 	loadImage(el, imgSrc, callback) {
 		const imageLoader = new Image();
 
-		imageLoader.onload = function() {
+		imageLoader.onload = function(e) {
 			if (el.tagName.toLowerCase() === 'img') {
 				el.setAttribute('src', this.src);
 			} else {
@@ -492,22 +421,6 @@ module.exports = class {
 	 * Resize handler
 	 */
 	resizeHandler() {
-		// update container sizes
-		// for (let i = 0; i < this.elementCache.length; i++) {
-		// 	const item = this.elementCache[i];
-
-		// 	if (!item.loaded) {
-		// 		continue;
-		// 	}
-
-		// 	const dimensions = this.getContainerDimensions(item.el);
-
-		// 	if (dimensions.width > item.currentSize.width || (!item.noHeight && dimensions.height > item.currentSize.height)) {
-		// 		this.debug('swapping image');
-		// 		this.chooseImage(item);
-		// 	}
-		// }
-
 		// cycle through loaded images and see if we need to select a different source
 		for (let i = 0; i < this.elements.loaded.length; i++) {
 			const item = this.elements.loaded[i];
@@ -530,18 +443,6 @@ module.exports = class {
 	scrollHandler() {
 		// lazy load images
 		this.processElementQueue();
-
-		// for (let i = 0; i < this.elementCache.length; i++) {
-		// 	const item = this.elementCache[i];
-
-		// 	if (item.loaded || (item.options.lazyLoad && !this.canLazyLoad(item))) {
-		// 		continue;
-		// 	}
-
-		// 	this.debugInfo('choosing image', item);
-
-		// 	this.chooseImage(item);
-		// }
 	}
 
 	on(event, listener) {
@@ -565,3 +466,5 @@ module.exports = class {
 		}
 	}
 }
+
+export default ImageTools;

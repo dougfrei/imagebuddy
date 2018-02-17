@@ -1,3 +1,3 @@
-/* global require */
+import ImageTools from './imageTools';
 
-window.ImageTools = require('./imageTools.js');
+window.ImageTools = ImageTools;
