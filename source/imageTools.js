@@ -74,8 +74,10 @@ class ImageTools {
 	}
 
 	processElementQueue() {
+		let numProcessed = 0;
+
 		if (!this.elements.queue.length) {
-			return;
+			return numProcessed;
 		}
 
 		for (let i = 0; i < this.elements.queue.length; i++) {
@@ -92,10 +94,16 @@ class ImageTools {
 			this.elements.loaded.push(item);
 			
 			i--;
+
+			numProcessed++;
 		}
+
+		return numProcessed;
 	}
 
 	update(opts = {}) {
+		const t1 = performance.now();
+
 		const newElements = this.getElements();
 		const updateOffsetTop = opts.updateOffsetTop || false;
 
@@ -108,7 +116,10 @@ class ImageTools {
 			}
 		}
 
-		this.processElementQueue();
+		const numProcessed = this.processElementQueue();
+		const t2 = performance.now();
+		
+		this.debug('ImageTools: update complete', `${numProcessed} elements`, `${Math.round(t2 - t1)}ms`);
 		
 		window.dispatchEvent(new CustomEvent('it-update', {}));
 	}
