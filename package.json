@@ -1,6 +1,6 @@
 {
   "name": "imagetools",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "ImageTools",
   "main": "source/imageTools.js",
   "devDependencies": {
@@ -23,7 +23,10 @@
     "wrapper-webpack-plugin": "^1.0.0"
   },
   "dependencies": {},
-  "scripts": {},
+  "scripts": {
+    "build": "npx gulp build",
+    "dev": "npx gulp"
+  },
   "author": "Doug Frei <dougfrei@gmail.com>",
   "license": "ISC"
 }

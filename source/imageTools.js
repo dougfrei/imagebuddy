@@ -104,7 +104,8 @@ class ImageTools {
 	update(opts = {}) {
 		const t1 = performance.now();
 
-		const newElements = this.getElements();
+		const parentEl = opts.parentEl || document;
+		const newElements = this.getElements(parentEl);
 		const updateOffsetTop = opts.updateOffsetTop || false;
 
 		this.elements.queue = this.elements.queue.concat(newElements);
@@ -210,9 +211,9 @@ class ImageTools {
 	/**
 	 * Get all the HTML elements configured for image selection
 	 */
-	getElements() {
+	getElements(parentEl) {
 		const elements = [];
-		const foundEls = document.querySelectorAll(`[${this.config.attributes.sources}]`);
+		const foundEls = parentEl.querySelectorAll(`[${this.config.attributes.sources}]`);
 
 		for (let i = 0; i < foundEls.length; i++) {
 			const el = foundEls[i];
