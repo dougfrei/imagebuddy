@@ -122,9 +122,13 @@
                 lazyLoad: true
             });
 
-			imageTools.on('imageLoad', function(el) {
-				console.log('onImageLoad', el);
-			});
+            ImageTools.on('update', function () {
+                console.log('update event received');
+            });
+
+            ImageTools.on('image-loaded', function (el) {
+                console.log('image loaded', el);
+            });
         }
     </script>
 </body>
