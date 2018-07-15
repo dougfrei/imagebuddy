@@ -150,11 +150,16 @@ class ImageTools {
 		for (let i = 0; i < this.elements.loaded.length; i++) {
 			const item = this.elements.loaded[i];
 			const dimensions = item.getContainerDimensions();
-			
+
 			if (dimensions.width > item.currentSize.width || (!item.noHeight && dimensions.height > item.currentSize.height)) {
 				this.debugger.debug('swapping image');
 				item.chooseImage();
 			}
+		}
+
+		// re-calculate top offsets for images in the queue
+		for (let i = 0; i < this.elements.queue.length; i++) {
+			this.elements.queue[i].calculateElementTopOffset();
 		}
 
 		// load any unprocessed cache elements
