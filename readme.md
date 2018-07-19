@@ -1,5 +1,5 @@
 # ImageBuddy
-ImageBuddy is a JavaScript library that will dynamically set the `src` attribute of an image or the `background-image` property of a element.
+ImageBuddy is a JavaScript library that will dynamically set the `src` attribute of an image or the `background-image` property of an element.
 
 ## HTML setup
 ### Transparent PNG placeholder
