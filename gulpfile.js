@@ -10,14 +10,14 @@ const webpackStream	= require('webpack-stream');
 const webpackConfig	= require('./webpack.config.js');
 
 gulp.task('lint', function() {
-	return gulp.src('source/imageTools.js')
+	return gulp.src('source/ImageBuddy.js')
 		.pipe(eslint())
 		.pipe(eslint.format())
 		.pipe(eslint.failAfterError());
 });
 
 gulp.task('build', function() {
-	return gulp.src('source/imageTools.js')
+	return gulp.src('source/ImageBuddy.js')
 		.pipe(plumber({
 			errorHandler: notify.onError('Error: <%= error.message %>')
 		}))
@@ -38,11 +38,11 @@ gulp.task('browser-sync', function() {
 				'/dist': './dist'
 			}
 		},
-		files: ['dist/imageTools.bundle.min.js', 'examples/*'],
+		files: ['dist/imagebuddy.bundle.min.js', 'examples/*'],
 		open: false
 	});
 });
 
 gulp.task('default', ['lint', 'build', 'browser-sync'], function() {
-	gulp.watch('source/imageTools.js', ['lint', 'build']);
+	gulp.watch('source/**/*.js', ['lint', 'build']);
 });

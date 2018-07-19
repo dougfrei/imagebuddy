@@ -15,27 +15,6 @@ export default class {
 		return Boolean(parseInt(boolStr));
 	}
 
-	/**
-	 * Print a debug message
-	 */
-	/* static debug() {
-		if (this.opts.debug) {
-			console.log(...arguments);
-		}
-	}
-
-	static debugInfo() {
-		if (this.opts.debug) {
-			console.info(...arguments);
-		}
-	}
-
-	static debugTable() {
-		if (this.opts.debug) {
-			console.table(...arguments);
-		}
-	} */
-
 	static passiveEventListenerSupported() {
 		// check for passive event listener support
 		let passiveSupported = false;

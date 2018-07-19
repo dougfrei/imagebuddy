@@ -1,12 +1,12 @@
-import ImageToolsUtil from './ImageToolsUtil';
-import ImageToolsDebug from './ImageToolsDebug';
-import ImageToolsDOMElement from './ImageToolsDOMElement';
-import ImageToolsEvents from './ImageToolsEvents';
+import ImageBuddyUtil from './ImageBuddyUtil';
+import ImageBuddyDebug from './ImageBuddyDebug';
+import ImageBuddyDOMElement from './ImageBuddyDOMElement';
+import ImageBuddyEvents from './ImageBuddyEvents';
 
 /**
- * ImageTools class
+ * ImageSelector class
  */
-class ImageTools {
+class ImageBuddy {
 	/**
 	 * Constructor
 	 *
@@ -24,21 +24,21 @@ class ImageTools {
 
 		this.config = {
 			events: {
-				resize: 'imageToolsResize',
-				scroll: 'imageToolsScroll'
+				resize: 'ImageBuddyResize',
+				scroll: 'ImageBuddyScroll'
 			},
 			attributes: {
-				// enabled: 'data-it-enabled',
-				sources: 'data-it-sources',
-				lazyLoad: 'data-it-lazyload',
-				lazyLoadThreshold: 'data-it-lazyload-threshold',
-				matchDPR: 'data-it-match-dpr',
-				noHeight: 'data-it-no-height'
+				// enabled: 'data-ib-enabled',
+				sources: 'data-ib-sources',
+				lazyLoad: 'data-ib-lazyload',
+				lazyLoadThreshold: 'data-ib-lazyload-threshold',
+				matchDPR: 'data-ib-match-dpr',
+				noHeight: 'data-ib-no-height'
 			},
 			classes: {
-				base: 'it__image',
-				loading: 'it__image--loading',
-				loaded: 'it__image--loaded'
+				base: 'ib__image',
+				loading: 'ib__image--loading',
+				loaded: 'ib__image--loaded'
 			}
 		};
 
@@ -50,7 +50,7 @@ class ImageTools {
 			lazyLoadThreshold: 100
 		}, opts);
 
-		this.debugger = new ImageToolsDebug(this.opts.debug);
+		this.debugger = new ImageBuddyDebug(this.opts.debug);
 
 		this.resizeHandler = this.resizeHandler.bind(this);
 		this.scrollHandler = this.scrollHandler.bind(this);
@@ -106,18 +106,17 @@ class ImageTools {
 		const numProcessed = this.processElementQueue();
 		const t2 = performance.now();
 		
-		this.debugger.debug('ImageTools: update complete', `${numProcessed} elements`, `${Math.round(t2 - t1)}ms`);
+		this.debugger.debug('ImageBuddy: update complete', `${numProcessed} elements`, `${Math.round(t2 - t1)}ms`);
 		
-		// window.dispatchEvent(new CustomEvent('it-update', {}));
-		ImageToolsEvents.emit('update');
+		ImageBuddyEvents.emit('update');
 	}
 
 	/**
 	 * Setup and throttle event listeners -- scroll & resize
 	 */
 	setupEventListeners() {
-		ImageToolsUtil.throttleEventListener('resize', this.resizeHandler, { passive: true });
-		ImageToolsUtil.throttleEventListener('scroll', this.scrollHandler, { passive: true });
+		ImageBuddyUtil.throttleEventListener('resize', this.resizeHandler, { passive: true });
+		ImageBuddyUtil.throttleEventListener('scroll', this.scrollHandler, { passive: true });
 	}
 
 	/**
@@ -132,11 +131,11 @@ class ImageTools {
 			// const offsetTop = el.getBoundingClientRect().top + (window.pageYOffset || document.documentElement.scrollTop);
 
 			// attribute that can be used to ignore specific images when loading
-			if (ImageToolsDOMElement.isCached(el) || ImageToolsDOMElement.shouldIgnore(el)) {
+			if (ImageBuddyDOMElement.isCached(el) || ImageBuddyDOMElement.shouldIgnore(el)) {
 				continue;
 			}
 
-			elements.push(new ImageToolsDOMElement(el, this.config, this.opts));
+			elements.push(new ImageBuddyDOMElement(el, this.config, this.opts));
 		}
 
 		return elements;
@@ -175,8 +174,8 @@ class ImageTools {
 	}
 
 	static on(event, listener) {
-		ImageToolsEvents.on(event, listener);
+		ImageBuddyEvents.on(event, listener);
 	}
 }
 
-export default ImageTools;
+export default ImageBuddy;

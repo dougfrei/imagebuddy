@@ -9,10 +9,10 @@ module.exports = {
 	mode: 'production',
 	cache: true,
 	devtool: 'cheap-source-map',
-	entry: './source/imageTools-wrapper.js',
+	entry: './source/ImageBuddy-wrapper.js',
 	output: {
 		path: path.resolve(__dirname, 'dist'),
-		filename: `imageTools.bundle.min.js`
+		filename: `imagebuddy-${pkg.version}.bundle.min.js`
 	},
 	resolve: {
 		modules: ['node_modules']
@@ -55,7 +55,7 @@ module.exports = {
 		new WrapperPlugin({
 			header: function () {
 				return "/**\n" +
-					` * ImageTools v${pkg.version} | ISC` + "\n" +
+					` * ImageBuddy v${pkg.version} | ISC` + "\n" +
 					" */\n";
 			}
 		})		

@@ -1,25 +1,25 @@
-import ImageToolsUtil from './ImageToolsUtil';
-import ImageToolsEvents from './ImageToolsEvents';
+import ImageBuddyUtil from './ImageBuddyUtil';
+import ImageBuddyEvents from './ImageBuddyEvents';
 
 export default class {
 	constructor(el, itConfig, itOpts) {
 		el.classList.add(itConfig.classes.base);
-		el.setAttribute('data-it-cache-id', ImageToolsUtil.getUniqueId());
+		el.setAttribute('data-ib-cache-id', ImageBuddyUtil.getUniqueId());
 
 		this.el = el;
 		this.config = itConfig;
 		
 		this.elType = el.tagName.toLowerCase();
-		this.cacheId = el.getAttribute('data-it-cache-id');
+		this.cacheId = el.getAttribute('data-ib-cache-id');
 		// this.offsetTop = this.calculateElementTopOffset(el);
 		this.sizes = this.getSizes(el.getAttribute(itConfig.attributes.sources));
 		this.currentSize = false;
 		this.loaded = false; // FIXME: figure out a way to check if images are already loaded when this array is created
 		this.isLoading = false;
 		this.options = {
-			lazyLoad: el.getAttribute(itConfig.attributes.lazyLoad) ? ImageToolsUtil.parseBooleanString(el.getAttribute(itConfig.attributes.lazyLoad)) : itOpts.lazyLoad,
+			lazyLoad: el.getAttribute(itConfig.attributes.lazyLoad) ? ImageBuddyUtil.parseBooleanString(el.getAttribute(itConfig.attributes.lazyLoad)) : itOpts.lazyLoad,
 			lazyLoadThreshold: el.getAttribute(itConfig.attributes.lazyLoadThreshold) ? el.getAttribute(itConfig.attributes.lazyLoadThreshold) : itOpts.lazyLoadThreshold,
-			matchDPR: el.getAttribute(itConfig.attributes.matchDPR) ? ImageToolsUtil.parseBooleanString(el.getAttribute(itConfig.attributes.matchDPR)) : itOpts.matchDPR,
+			matchDPR: el.getAttribute(itConfig.attributes.matchDPR) ? ImageBuddyUtil.parseBooleanString(el.getAttribute(itConfig.attributes.matchDPR)) : itOpts.matchDPR,
 			noHeight: el.getAttribute(itConfig.attributes.noHeight) ? el.getAttribute(itConfig.attributes.noHeight) : false
 		}
 
@@ -31,7 +31,7 @@ export default class {
 	}
 
 	/**
-	 * Create an array of image sizes from the "data-it-sources" attribute
+	 * Create an array of image sizes from the "data-ib-sources" attribute
 	 *
 	 * @param {string} rImgSources
 	 */
@@ -70,11 +70,11 @@ export default class {
 	}
 
 	static isCached(el) {
-		return (el.getAttribute('data-it-cache-id') && !el.hasAttribute('data-it-no-cache'));
+		return (el.getAttribute('data-ib-cache-id') && !el.hasAttribute('data-ib-no-cache'));
 	}
 
 	static shouldIgnore(el) {
-		return el.hasAttribute('data-it-ignore');
+		return el.hasAttribute('data-ib-ignore');
 	}
 
 	/**
@@ -111,11 +111,11 @@ export default class {
 
 		scoredSizes.sort((a, b) => a.score - b.score);
 
-		// ImageToolsUtil.debugTable(scoredSizes);
+		// ImageBuddyUtil.debugTable(scoredSizes);
 
 		const idealImage = scoredSizes[scoredSizes.length-1];
 
-		// ImageToolsUtil.debug(idealImage);
+		// ImageBuddyUtil.debug(idealImage);
 
 		this.loadImage(idealImage.url, () => {
 			this.loaded = true;
@@ -124,12 +124,12 @@ export default class {
 			this.el.classList.remove(this.config.classes.loading);
 			this.el.classList.add(this.config.classes.loaded);
 
-			ImageToolsEvents.emit('image-loaded', this.el);
+			ImageBuddyEvents.emit('image-loaded', this.el);
 		});
 	}
 
 	calculateUsabilityScore(containerWidth, containerHeight, imageWidth, imageHeight) {
-		// ImageToolsUtil.debug(`container: ${containerWidth}x${containerHeight}`, `image: ${imageWidth}x${imageHeight}`);
+		// ImageBuddyUtil.debug(`container: ${containerWidth}x${containerHeight}`, `image: ${imageWidth}x${imageHeight}`);
 
 		let score = 1;
 
