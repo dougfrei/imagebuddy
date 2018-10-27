@@ -8,7 +8,7 @@ export default class {
 
 		this.el = el;
 		this.config = itConfig;
-		
+
 		this.elType = el.tagName.toLowerCase();
 		this.cacheId = el.getAttribute('data-ib-cache-id');
 		// this.offsetTop = this.calculateElementTopOffset(el);
@@ -96,7 +96,7 @@ export default class {
 			this.el.style.width = '100%';
 		}
 
-		const container = this.getContainerDimensions(this.el, this.options.noHeight);
+		const container = this.getContainerDimensions();
 
 		if (this.options.matchDPR) {
 			container.width *= window.devicePixelRatio;
@@ -156,7 +156,7 @@ export default class {
 	 * @param {object} el
 	 * @param {bool} noHeight
 	 */
-	getContainerDimensions(noHeight = false) {
+	getContainerDimensions() {
 		// FIXME:
 		// this is tricky since an IMG tag may not have a set height and we can't rely on
 		// its container for that height value
@@ -177,7 +177,7 @@ export default class {
 			container.width = this.getElementWidth(this.el.parentElement);
 		}
 
-		if (noHeight) {
+		if (this.options.noHeight) {
 			container.height = 0;
 		}
 
@@ -193,7 +193,7 @@ export default class {
 	getElementWidth(el) {
 		const displayStyle = el.style.display ? el.style.display : window.getComputedStyle(el).display;
 
-		if (displayStyle != 'block' && el.parentElement) {
+		if (displayStyle !== 'block' && el.parentElement) {
 			return this.getElementWidth(el.parentElement);
 		}
 
