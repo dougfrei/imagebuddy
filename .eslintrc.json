@@ -1,9 +1,9 @@
 {
+    "extends": "airbnb-base",
     "env": {
         "es6": true,
         "browser": true
     },
-    "extends": "eslint:recommended",
     "parserOptions": {
         "sourceType": "module"
     },
@@ -17,6 +17,7 @@
         "max-len": "off",
         "radix": "off",
         "no-unused-vars": "warn",
-		"no-empty": "off"
+        "no-empty": "off",
+        "object-curly-newline": "off"
     }
 }
