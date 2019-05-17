@@ -38,17 +38,21 @@ export default class {
 	getSizes(rImgSources) {
 		return rImgSources
 			.split(',')
-			.map(sizeEl => {
+			.map((sizeEl) => {
 				const [url, width, height] = sizeEl.trim().split(' ');
 
-				return { url: url, width: parseInt(width), height: parseInt(height) };
+				return {
+					url,
+					width: parseInt(width),
+					height: parseInt(height)
+				};
 			})
 			.sort((a, b) => {
 				if (a.width >= a.height) {
 					return a.width > b.width ? 1 : -1;
-				} else {
-					return a.height > b.height ? 1 : -1;
 				}
+
+				return a.height > b.height ? 1 : -1;
 			});
 	}
 
@@ -103,11 +107,9 @@ export default class {
 			container.height *= window.devicePixelRatio;
 		}
 
-		const scoredSizes = sizes.map((size) => {
-			size.score = this.calculateUsabilityScore(container.width, container.height, size.width, size.height);
-
-			return size;
-		});
+		const scoredSizes = sizes.map(size => Object.assign(size, {
+			score: this.calculateUsabilityScore(container.width, container.height, size.width, size.height)
+		}));
 
 		scoredSizes.sort((a, b) => a.score - b.score);
 
@@ -204,14 +206,14 @@ export default class {
 		const imageLoader = new Image();
 		const { el } = this;
 
-		imageLoader.onload = function() {
+		imageLoader.onload = function imageOnLoad() {
 			if (el.tagName.toLowerCase() === 'img') {
 				el.setAttribute('src', this.src);
 			} else {
 				el.style.backgroundImage = `url('${this.src}')`;
 			}
 
-			if (callback && typeof callback == 'function') {
+			if (callback && typeof callback === 'function') {
 				callback();
 			}
 		};

@@ -21,8 +21,9 @@ export default class {
 
 		try {
 			const options = Object.defineProperty({}, 'passive', {
-				get: function() {
+				get() {
 					passiveSupported = true;
+					return true;
 				}
 			});
 
@@ -39,17 +40,21 @@ export default class {
 	 * @param {function} callback
 	 * @param {object} options
 	 */
-	static throttleEventListener(eventName, callback, options) {
+	static throttleEventListener(eventName, callback, userOptions) {
 		const passiveSupported = this.passiveEventListenerSupported();
 
-		options.passive = (typeof options.passive === 'undefined') ? true : options.passive;
-		options.capture = (typeof options.capture === 'undefined') ? false : options.capture;
+		const options = Object.assign(userOptions, {
+			passive: (typeof userOptions.passive === 'undefined') ? true : userOptions.passive,
+			capture: (typeof userOptions.capture === 'undefined') ? false : userOptions.capture
+		});
 
 		if (!this.eventsRunning) {
 			this.eventsRunning = {};
 		}
 
-		if (!this.eventsRunning.hasOwnProperty(eventName)) {
+		const eventIsRunning = Object.prototype.hasOwnProperty.call(this.eventsRunning, eventName);
+
+		if (!eventIsRunning) {
 			this.eventsRunning[eventName] = false;
 		}
 

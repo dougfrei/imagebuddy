@@ -3,20 +3,18 @@
  */
 export function polyfillObjectAssign() {
 	if (typeof Object.assign !== 'function') {
-		Object.assign = function(target, varArgs) { // .length of function is 2
-			'use strict';
-
+		Object.assign = function createObjectAssignPolyfill(target, varArgs) { // .length of function is 2
 			if (target === null) { // TypeError if undefined or null
 				throw new TypeError('Cannot convert undefined or null to object');
 			}
 
-			var to = Object(target);
+			const to = Object(target);
 
-			for (var index = 1; index < arguments.length; index++) {
-				var nextSource = arguments[index];
+			for (let index = 1; index < arguments.length; index++) {
+				const nextSource = arguments[index];
 
 				if (nextSource !== null) { // Skip over if undefined or null
-					for (var nextKey in nextSource) {
+					for (let nextKey in nextSource) {
 						// Avoid bugs when hasOwnProperty is shadowed
 						if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
 							to[nextKey] = nextSource[nextKey];
@@ -35,7 +33,7 @@ export function polyfillObjectAssign() {
  */
 export function polyfillCustomEvent() {
 	if (typeof window.CustomEvent !== 'function') {
-		const CustomEvent = function(event, params) {
+		const CustomEvent = function createCustomEventPolyfill(event, params) {
 			const evtParams = params || { bubbles: false, cancelable: false, detail: undefined };
 			const evt = document.createEvent('CustomEvent');
 

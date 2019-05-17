@@ -18,6 +18,7 @@
         "radix": "off",
         "no-unused-vars": "warn",
         "no-empty": "off",
-        "object-curly-newline": "off"
+        "object-curly-newline": "off",
+        "class-methods-use-this": "off"
     }
 }
