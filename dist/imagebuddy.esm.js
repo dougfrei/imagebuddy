@@ -105,6 +105,8 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 
 
 
@@ -122,7 +124,36 @@ function () {
    * @param {object} opts
    */
   function ImageBuddy(opts) {
+    var _this = this;
+
     _classCallCheck(this, ImageBuddy);
+
+    _defineProperty(this, "resizeHandler", function () {
+      // cycle through loaded images and see if we need to select a different source
+      for (var i = 0; i < _this.elements.loaded.length; i++) {
+        var item = _this.elements.loaded[i];
+        var dimensions = item.getContainerDimensions();
+
+        if (dimensions.width > item.currentSize.width || !item.noHeight && dimensions.height > item.currentSize.height) {
+          _this.debugger.debug('swapping image');
+
+          item.chooseImage();
+        }
+      } // re-calculate top offsets for images in the queue
+
+
+      for (var _i = 0; _i < _this.elements.queue.length; _i++) {
+        _this.elements.queue[_i].calculateElementTopOffset();
+      } // load any unprocessed cache elements
+
+
+      _this.processElementQueue();
+    });
+
+    _defineProperty(this, "scrollHandler", function () {
+      // lazy load images
+      _this.processElementQueue();
+    });
 
     this.eventsRunning = {};
     this.elementCache = [];
@@ -158,9 +189,9 @@ function () {
       lazyLoad: true,
       lazyLoadThreshold: 100
     }, opts);
-    this.debugger = new _ImageBuddyDebug__WEBPACK_IMPORTED_MODULE_1__["default"](this.opts.debug);
-    this.resizeHandler = this.resizeHandler.bind(this);
-    this.scrollHandler = this.scrollHandler.bind(this);
+    this.debugger = new _ImageBuddyDebug__WEBPACK_IMPORTED_MODULE_1__["default"](this.opts.debug); // this.resizeHandler = this.resizeHandler.bind(this);
+    // this.scrollHandler = this.scrollHandler.bind(this);
+
     this.setupEventListeners();
     this.update();
   }
@@ -254,38 +285,6 @@ function () {
      * Resize handler
      */
 
-  }, {
-    key: "resizeHandler",
-    value: function resizeHandler() {
-      // cycle through loaded images and see if we need to select a different source
-      for (var i = 0; i < this.elements.loaded.length; i++) {
-        var item = this.elements.loaded[i];
-        var dimensions = item.getContainerDimensions();
-
-        if (dimensions.width > item.currentSize.width || !item.noHeight && dimensions.height > item.currentSize.height) {
-          this.debugger.debug('swapping image');
-          item.chooseImage();
-        }
-      } // re-calculate top offsets for images in the queue
-
-
-      for (var _i = 0; _i < this.elements.queue.length; _i++) {
-        this.elements.queue[_i].calculateElementTopOffset();
-      } // load any unprocessed cache elements
-
-
-      this.processElementQueue();
-    }
-    /**
-     * Scroll handler -- check for lazy load-able images
-     */
-
-  }, {
-    key: "scrollHandler",
-    value: function scrollHandler() {
-      // lazy load images
-      this.processElementQueue();
-    }
   }], [{
     key: "on",
     value: function on(event, listener) {
@@ -428,7 +427,7 @@ function () {
       var sizes = this.getSizes(this.el.getAttribute(this.config.attributes.sources));
       var elType = this.el.tagName.toLowerCase();
 
-      if (elType == 'img' && parseInt(getComputedStyle(this.el).width) <= 1) {
+      if (elType === 'img' && parseInt(getComputedStyle(this.el).width) <= 1) {
         this.el.style.width = '100%';
       }
 
@@ -505,7 +504,7 @@ function () {
       // el.clientHeight works fine on all tags except IMG
       var displayStyle = this.el.style.display ? this.el.style.display : window.getComputedStyle(this.el).display;
       var container = {
-        width: displayStyle == 'block' ? this.el.clientWidth : 0,
+        width: displayStyle === 'block' ? this.el.clientWidth : 0,
         height: this.el.clientHeight ? this.el.clientHeight : 0 // TODO: try `parseInt(window.getComputedStyle(el).height)` here
 
       };

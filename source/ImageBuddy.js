@@ -52,8 +52,8 @@ class ImageBuddy {
 
 		this.debugger = new ImageBuddyDebug(this.opts.debug);
 
-		this.resizeHandler = this.resizeHandler.bind(this);
-		this.scrollHandler = this.scrollHandler.bind(this);
+		// this.resizeHandler = this.resizeHandler.bind(this);
+		// this.scrollHandler = this.scrollHandler.bind(this);
 
 		this.setupEventListeners();
 		this.update();
@@ -78,7 +78,7 @@ class ImageBuddy {
 			// move to loaded array
 			this.elements.queue.splice(i, 1);
 			this.elements.loaded.push(item);
-			
+
 			i--;
 
 			numProcessed++;
@@ -105,9 +105,9 @@ class ImageBuddy {
 
 		const numProcessed = this.processElementQueue();
 		const t2 = performance.now();
-		
+
 		this.debugger.debug('ImageBuddy: update complete', `${numProcessed} elements`, `${Math.round(t2 - t1)}ms`);
-		
+
 		ImageBuddyEvents.emit('update');
 	}
 
@@ -144,7 +144,7 @@ class ImageBuddy {
 	/**
 	 * Resize handler
 	 */
-	resizeHandler() {
+	resizeHandler = () => {
 		// cycle through loaded images and see if we need to select a different source
 		for (let i = 0; i < this.elements.loaded.length; i++) {
 			const item = this.elements.loaded[i];
@@ -168,7 +168,7 @@ class ImageBuddy {
 	/**
 	 * Scroll handler -- check for lazy load-able images
 	 */
-	scrollHandler() {
+	scrollHandler = () => {
 		// lazy load images
 		this.processElementQueue();
 	}

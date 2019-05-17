@@ -21,7 +21,7 @@ export default class {
 			lazyLoadThreshold: el.getAttribute(itConfig.attributes.lazyLoadThreshold) ? el.getAttribute(itConfig.attributes.lazyLoadThreshold) : itOpts.lazyLoadThreshold,
 			matchDPR: el.getAttribute(itConfig.attributes.matchDPR) ? ImageBuddyUtil.parseBooleanString(el.getAttribute(itConfig.attributes.matchDPR)) : itOpts.matchDPR,
 			noHeight: el.getAttribute(itConfig.attributes.noHeight) ? el.getAttribute(itConfig.attributes.noHeight) : false
-		}
+		};
 
 		this.calculateElementTopOffset();
 	}
@@ -92,7 +92,7 @@ export default class {
 		const sizes = this.getSizes(this.el.getAttribute(this.config.attributes.sources));
 		const elType = this.el.tagName.toLowerCase();
 
-		if (elType == 'img' && parseInt(getComputedStyle(this.el).width) <= 1) {
+		if (elType === 'img' && parseInt(getComputedStyle(this.el).width) <= 1) {
 			this.el.style.width = '100%';
 		}
 
@@ -113,7 +113,7 @@ export default class {
 
 		// ImageBuddyUtil.debugTable(scoredSizes);
 
-		const idealImage = scoredSizes[scoredSizes.length-1];
+		const idealImage = scoredSizes[scoredSizes.length - 1];
 
 		// ImageBuddyUtil.debug(idealImage);
 
@@ -169,7 +169,7 @@ export default class {
 		const displayStyle = this.el.style.display ? this.el.style.display : window.getComputedStyle(this.el).display;
 
 		const container = {
-			width: (displayStyle == 'block') ? this.el.clientWidth : 0,
+			width: (displayStyle === 'block') ? this.el.clientWidth : 0,
 			height: this.el.clientHeight ? this.el.clientHeight : 0 // TODO: try `parseInt(window.getComputedStyle(el).height)` here
 		};
 
@@ -202,7 +202,7 @@ export default class {
 
 	loadImage(imgSrc, callback) {
 		const imageLoader = new Image();
-		const el = this.el;
+		const { el } = this;
 
 		imageLoader.onload = function() {
 			if (el.tagName.toLowerCase() === 'img') {

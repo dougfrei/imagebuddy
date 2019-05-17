@@ -27,7 +27,7 @@ export default class {
 			});
 
 			window.addEventListener('test', null, options);
-		} catch(err) {}
+		} catch (err) {}
 
 		return passiveSupported;
 	}

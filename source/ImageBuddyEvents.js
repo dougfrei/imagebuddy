@@ -20,9 +20,9 @@ export default class {
 		setTimeout(() => {
 			if (typeof window.itEvents[event] === 'object') {
 				const listeners = window.itEvents[event].slice();
-				const length = listeners.length;
+				const { length } = listeners;
 				const args = [].slice.call(arguments, 1);
-	
+
 				for (let i = 0; i < length; i++) {
 					listeners[i].apply(this, args);
 				}
