@@ -62,7 +62,7 @@ and then imported when needed
 
 Alternatively, ImageBuddy can be included manually using the built version included in the `dist` path:
 
-`<script src="imagebuddy-1.0.0.bundle.min.js"></script>`
+`<script src="imagebuddy.browser.min.js"></script>`
 
 
 ### Instantiation
@@ -70,14 +70,14 @@ Alternatively, ImageBuddy can be included manually using the built version inclu
 const ib = new ImageBuddy({
 	// print debug information to the console while ImageBuddy is running
 	debug: false,
-	
+
 	// Use the devicePixelRatio value of the browser as a multiplier when selecting image sizes
 	// https://developer.mozilla.org/en-US/docs/Web/API/Window/devicePixelRatio
 	matchDPR: false,
-	
+
 	// Enable/disable lazy-loading for all elements
 	lazyLoad: true,
-	
+
 	// Set the distance of elements (in pixels) from the bottom of the
 	// browser viewport where the lazy-loading functionality will activate.
 	lazyLoadThreshold: 100
@@ -96,7 +96,7 @@ Default options:
 {
 	// Control the parent element whose children will be updated
 	parentEl: document,
-	
+
 	// Re-calculate the top offset of the image elements.
 	// This can be useful when the width of a container or page changes.
 	updateOffsetTop: false

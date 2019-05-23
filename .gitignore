@@ -12,3 +12,4 @@ ehthumbs.db
 *.out
 *.log
 node_modules
+.rts2_cache_*
