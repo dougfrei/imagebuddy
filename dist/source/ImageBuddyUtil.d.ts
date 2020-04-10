@@ -1,1 +1,1 @@
-export declare function parseBooleanString(boolStr: string): boolean;
+export declare function stringToBoolean(attrVal: string): boolean;

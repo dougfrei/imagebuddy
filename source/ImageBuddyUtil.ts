@@ -1,7 +1,15 @@
-export function parseBooleanString(boolStr: string): boolean {
-	if (boolStr.toLowerCase() === 'true') {
+export function stringToBoolean(attrVal: string): boolean {
+	const refVal = attrVal.trim().toLowerCase();
+
+	if (refVal === 'true') {
 		return true;
 	}
 
-	return Boolean(parseInt(boolStr, 10));
+	if (refVal === 'false') {
+		return false;
+	}
+
+	const numVal = parseInt(refVal, 10);
+
+	return numVal > 0;
 }

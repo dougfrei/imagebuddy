@@ -1,8 +1,22 @@
 import ImageBuddyEvents from './ImageBuddyEvents';
-import { parseBooleanString } from './ImageBuddyUtil';
-import { calculateElementTopOffset, getSizesFromAttribute, calculateUsabilityScore, getElementWidth, getContainerDimensions, loadImage, getPageYOffset, compareURLs } from './DOMUtil';
-import { ImageSource, ImageSize, ImageBuddyDOMElementOptions, ImageBuddyConfig, ImageBuddyOpts } from './interfaces/index';
-
+import { stringToBoolean } from './ImageBuddyUtil';
+import {
+	calculateElementTopOffset,
+	getSizesFromAttribute,
+	calculateUsabilityScore,
+	getElementWidth,
+	getContainerDimensions,
+	loadImage,
+	getPageYOffset,
+	compareURLs,
+} from './DOMUtil';
+import {
+	ImageSource,
+	ImageSize,
+	ImageBuddyDOMElementOptions,
+	ImageBuddyConfig,
+	ImageBuddyOpts,
+} from './interfaces/index';
 
 export default class {
 	el: HTMLElement;
@@ -15,23 +29,62 @@ export default class {
 	options: ImageBuddyDOMElementOptions;
 	offsetTop: number;
 
-	constructor(el: HTMLElement, ibConfig: ImageBuddyConfig, ibOpts: ImageBuddyOpts) {
+	constructor(
+		el: HTMLElement,
+		ibConfig: ImageBuddyConfig,
+		ibOpts: ImageBuddyOpts
+	) {
 		el.classList.add(ibConfig.classes.base);
-		el.setAttribute('data-ib-cache-id', Math.random().toString(36).substring(7));
+		el.setAttribute(
+			'data-ib-cache-id',
+			Math.random().toString(36).substring(7)
+		);
 
 		this.el = el;
 		this.config = ibConfig;
 
 		this.elType = el.tagName.toLowerCase();
-		this.sizes = getSizesFromAttribute(el.getAttribute(ibConfig.attributes.sources) || '');
+		this.sizes = getSizesFromAttribute(
+			el.getAttribute(ibConfig.attributes.sources) || ''
+		);
 		this.currentSize = { width: 0, height: 0 };
 		this.loaded = false; // FIXME: figure out a way to check if images are already loaded when this array is created
 		this.isLoading = false;
 		this.options = {
-			lazyLoad: el.hasAttribute(ibConfig.attributes.lazyLoad) ? parseBooleanString(el.getAttribute(ibConfig.attributes.lazyLoad) || '') : ibOpts.lazyLoad,
-			lazyLoadThreshold: el.hasAttribute(ibConfig.attributes.lazyLoadThreshold) ? parseInt(el.getAttribute(ibConfig.attributes.lazyLoadThreshold) || '0', 10) : ibOpts.lazyLoadThreshold,
-			matchDPR: el.hasAttribute(ibConfig.attributes.matchDPR) ? parseBooleanString(el.getAttribute(ibConfig.attributes.matchDPR) || '') : ibOpts.matchDPR,
-			noHeight: el.hasAttribute(ibConfig.attributes.noHeight) ? el.hasAttribute(ibConfig.attributes.noHeight) : false
+			lazyLoad: el.hasAttribute(ibConfig.attributes.lazyLoad)
+				? stringToBoolean(
+						el.getAttribute(ibConfig.attributes.lazyLoad) || ''
+				  )
+				: ibOpts.lazyLoad,
+			lazyLoadThreshold: el.hasAttribute(
+				ibConfig.attributes.lazyLoadThreshold
+			)
+				? parseInt(
+						el.getAttribute(
+							ibConfig.attributes.lazyLoadThreshold
+						) || '0',
+						10
+				  )
+				: ibOpts.lazyLoadThreshold,
+			matchDPR: el.hasAttribute(ibConfig.attributes.matchDPR)
+				? stringToBoolean(
+						el.getAttribute(ibConfig.attributes.matchDPR) || ''
+				  )
+				: ibOpts.matchDPR,
+			noHeight: el.hasAttribute(ibConfig.attributes.noHeight)
+				? stringToBoolean(
+						el.getAttribute(ibConfig.attributes.noHeight) || ''
+				  )
+				: false,
+			ignoreHiddenCheck: el.hasAttribute(
+				ibConfig.attributes.ignoreHiddenCheck
+			)
+				? stringToBoolean(
+						el.getAttribute(
+							ibConfig.attributes.ignoreHiddenCheck
+						) || ''
+				  )
+				: false,
 		};
 		this.offsetTop = calculateElementTopOffset(this.el);
 	}
@@ -50,7 +103,10 @@ export default class {
 			return false;
 		}
 
-		if (this.offsetTop - (getPageYOffset() + window.innerHeight) <= this.options.lazyLoadThreshold) {
+		if (
+			this.offsetTop - (getPageYOffset() + window.innerHeight) <=
+			this.options.lazyLoadThreshold
+		) {
 			return true;
 		}
 
@@ -67,25 +123,44 @@ export default class {
 			return;
 		}
 
+		if (!this.options.ignoreHiddenCheck && this.isHidden()) {
+			return;
+		}
+
 		this.isLoading = true;
 
-		const sizes = getSizesFromAttribute(this.el.getAttribute(this.config.attributes.sources) || '');
+		const sizes = getSizesFromAttribute(
+			this.el.getAttribute(this.config.attributes.sources) || ''
+		);
 		const elType = this.el.tagName.toLowerCase();
 
-		if (elType === 'img' && parseInt(getComputedStyle(this.el).width || '0', 10) <= 1) {
+		if (
+			elType === 'img' &&
+			parseInt(getComputedStyle(this.el).width || '0', 10) <= 1
+		) {
 			this.el.style.width = '100%';
 		}
 
-		const container = getContainerDimensions(this.el, this.options.noHeight);
+		const container = getContainerDimensions(
+			this.el,
+			this.options.noHeight
+		);
 
 		if (this.options.matchDPR) {
 			container.width *= window.devicePixelRatio;
 			container.height *= window.devicePixelRatio;
 		}
 
-		const scoredSizes = sizes.map(size => Object.assign(size, {
-			score: calculateUsabilityScore(container.width, container.height, size.width, size.height)
-		}));
+		const scoredSizes = sizes.map((size) =>
+			Object.assign(size, {
+				score: calculateUsabilityScore(
+					container.width,
+					container.height,
+					size.width,
+					size.height
+				),
+			})
+		);
 
 		scoredSizes.sort((a, b) => a.score - b.score);
 
@@ -110,7 +185,10 @@ export default class {
 
 			this.loaded = true;
 			this.isLoading = false;
-			this.currentSize = { width: idealImage.width, height: idealImage.height };
+			this.currentSize = {
+				width: idealImage.width,
+				height: idealImage.height,
+			};
 			this.el.classList.remove(this.config.classes.loading);
 			this.el.classList.add(this.config.classes.loaded);
 
@@ -118,5 +196,12 @@ export default class {
 		} catch {
 			console.error('error loading image', idealImage.url);
 		}
+	}
+
+	/**
+	 * Check if an element is visible
+	 */
+	isHidden(): boolean {
+		return this.el.offsetParent === null;
 	}
 }

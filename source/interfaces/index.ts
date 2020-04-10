@@ -12,49 +12,51 @@ export interface ImageSize {
 }
 
 export interface ImageBuddyDOMElementOptions {
-	matchDPR: boolean,
-	lazyLoad: boolean,
-	lazyLoadThreshold: number,
-	noHeight: boolean
+	matchDPR: boolean;
+	lazyLoad: boolean;
+	lazyLoadThreshold: number;
+	noHeight: boolean;
+	ignoreHiddenCheck: boolean;
 }
 
 export interface ImageBuddyOpts {
-	debug: boolean,
-	matchDPR: boolean,
-	lazyLoad: boolean,
-	lazyLoadThreshold: number
+	debug: boolean;
+	matchDPR: boolean;
+	lazyLoad: boolean;
+	lazyLoadThreshold: number;
 }
 
 export interface ImageBuddyElements {
-	queue: ImageBuddyDOMElement[],
-	loaded: ImageBuddyDOMElement[]
+	queue: ImageBuddyDOMElement[];
+	loaded: ImageBuddyDOMElement[];
 }
 
 export interface ImageBuddyUpdateOptions {
-	parentEl?: HTMLElement,
-	updateOffsetTop?: boolean
+	parentEl?: HTMLElement;
+	updateOffsetTop?: boolean;
 }
 
 export interface ImageBuddyConfig {
 	events: {
-		resize: string,
-		scroll: string
-	},
+		resize: string;
+		scroll: string;
+	};
 	attributes: {
-		sources: string,
-		lazyLoad: string,
-		lazyLoadThreshold: string,
-		matchDPR: string,
-		noHeight: string
-	},
+		sources: string;
+		lazyLoad: string;
+		lazyLoadThreshold: string;
+		matchDPR: string;
+		noHeight: string;
+		ignoreHiddenCheck: string;
+	};
 	classes: {
-		base: string,
-		loading: string,
-		loaded: string
-	}
+		base: string;
+		loading: string;
+		loaded: string;
+	};
 }
 
 export interface IThrottleEventListenerOptions {
-	passive?: boolean,
-	capture?: boolean
+	passive?: boolean;
+	capture?: boolean;
 }

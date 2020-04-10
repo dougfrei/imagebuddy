@@ -13,6 +13,7 @@ export interface ImageBuddyDOMElementOptions {
     lazyLoad: boolean;
     lazyLoadThreshold: number;
     noHeight: boolean;
+    ignoreHiddenCheck: boolean;
 }
 export interface ImageBuddyOpts {
     debug: boolean;
@@ -39,6 +40,7 @@ export interface ImageBuddyConfig {
         lazyLoadThreshold: string;
         matchDPR: string;
         noHeight: string;
+        ignoreHiddenCheck: string;
     };
     classes: {
         base: string;

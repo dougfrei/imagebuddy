@@ -23,4 +23,8 @@ export default class {
      * @param {object} item
      */
     chooseImage(): Promise<void>;
+    /**
+     * Check if an element is visible
+     */
+    isHidden(): boolean;
 }

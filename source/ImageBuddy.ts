@@ -1,9 +1,18 @@
 import ImageBuddyDebug from './ImageBuddyDebug';
 import ImageBuddyDOMElement from './ImageBuddyDOMElement';
 import ImageBuddyEvents from './ImageBuddyEvents';
-import { elementIsCached, shouldIgnoreElement, getContainerDimensions } from './DOMUtil';
-import { ImageBuddyOpts, ImageBuddyElements, ImageBuddyUpdateOptions, ImageBuddyConfig, IThrottleEventListenerOptions } from './interfaces/index';
-
+import {
+	elementIsCached,
+	shouldIgnoreElement,
+	getContainerDimensions,
+} from './DOMUtil';
+import {
+	ImageBuddyOpts,
+	ImageBuddyElements,
+	ImageBuddyUpdateOptions,
+	ImageBuddyConfig,
+	IThrottleEventListenerOptions,
+} from './interfaces/index';
 
 class ImageBuddy {
 	eventsRunning: any;
@@ -21,13 +30,13 @@ class ImageBuddy {
 		this.eventsRunning = {};
 		this.elements = {
 			queue: [],
-			loaded: []
+			loaded: [],
 		};
 
 		this.config = {
 			events: {
 				resize: 'ImageBuddyResize',
-				scroll: 'ImageBuddyScroll'
+				scroll: 'ImageBuddyScroll',
 			},
 			attributes: {
 				// enabled: 'data-ib-enabled',
@@ -35,22 +44,26 @@ class ImageBuddy {
 				lazyLoad: 'data-ib-lazyload',
 				lazyLoadThreshold: 'data-ib-lazyload-threshold',
 				matchDPR: 'data-ib-match-dpr',
-				noHeight: 'data-ib-no-height'
+				noHeight: 'data-ib-no-height',
+				ignoreHiddenCheck: 'data-ib-ignore-hidden-check',
 			},
 			classes: {
 				base: 'ib__image',
 				loading: 'ib__image--loading',
-				loaded: 'ib__image--loaded'
-			}
+				loaded: 'ib__image--loaded',
+			},
 		};
 
 		// create default options and merge any overrides
-		this.opts = Object.assign({
-			debug: false,
-			matchDPR: true,
-			lazyLoad: true,
-			lazyLoadThreshold: 100
-		}, opts);
+		this.opts = Object.assign(
+			{
+				debug: false,
+				matchDPR: true,
+				lazyLoad: true,
+				lazyLoadThreshold: 100,
+			},
+			opts
+		);
 
 		this.debugger = new ImageBuddyDebug(this.opts.debug);
 
@@ -105,7 +118,11 @@ class ImageBuddy {
 		const numProcessed = this.processElementQueue();
 		const t2 = performance.now();
 
-		this.debugger.debug('ImageBuddy: update complete', `${numProcessed} elements`, `${Math.round(t2 - t1)}ms`);
+		this.debugger.debug(
+			'ImageBuddy: update complete',
+			`${numProcessed} elements`,
+			`${Math.round(t2 - t1)}ms`
+		);
 
 		ImageBuddyEvents.emit('update');
 	}
@@ -114,8 +131,12 @@ class ImageBuddy {
 	 * Setup and throttle event listeners -- scroll & resize
 	 */
 	setupEventListeners() {
-		this.throttleEventListener('resize', this.resizeHandler, { passive: true });
-		this.throttleEventListener('scroll', this.scrollHandler, { passive: true });
+		this.throttleEventListener('resize', this.resizeHandler, {
+			passive: true,
+		});
+		this.throttleEventListener('scroll', this.scrollHandler, {
+			passive: true,
+		});
 	}
 
 	/**
@@ -123,7 +144,9 @@ class ImageBuddy {
 	 */
 	getElements(parentEl: HTMLElement) {
 		const elements = [];
-		const foundEls = parentEl.querySelectorAll(`[${this.config.attributes.sources}]`);
+		const foundEls = parentEl.querySelectorAll(
+			`[${this.config.attributes.sources}]`
+		);
 
 		for (let i = 0; i < foundEls.length; i++) {
 			const el = foundEls[i];
@@ -134,7 +157,13 @@ class ImageBuddy {
 				continue;
 			}
 
-			elements.push(new ImageBuddyDOMElement(el as HTMLElement, this.config, this.opts));
+			elements.push(
+				new ImageBuddyDOMElement(
+					el as HTMLElement,
+					this.config,
+					this.opts
+				)
+			);
 		}
 
 		return elements;
@@ -147,9 +176,16 @@ class ImageBuddy {
 		// cycle through loaded images and see if we need to select a different source
 		for (let i = 0; i < this.elements.loaded.length; i++) {
 			const item = this.elements.loaded[i];
-			const dimensions = getContainerDimensions(item.el, item.options.noHeight);
+			const dimensions = getContainerDimensions(
+				item.el,
+				item.options.noHeight
+			);
 
-			if (dimensions.width > item.currentSize.width || (!item.options.noHeight && dimensions.height > item.currentSize.height)) {
+			if (
+				dimensions.width > item.currentSize.width ||
+				(!item.options.noHeight &&
+					dimensions.height > item.currentSize.height)
+			) {
 				this.debugger.debug('swapping image');
 				item.chooseImage();
 			}
@@ -162,7 +198,7 @@ class ImageBuddy {
 
 		// load any unprocessed cache elements
 		this.processElementQueue();
-	}
+	};
 
 	/**
 	 * Scroll handler -- check for lazy load-able images
@@ -170,7 +206,7 @@ class ImageBuddy {
 	scrollHandler = () => {
 		// lazy load images
 		this.processElementQueue();
-	}
+	};
 
 	/**
 	 * Setup a throttled event listener
@@ -179,39 +215,62 @@ class ImageBuddy {
 	 * @param {function} callback
 	 * @param {object} options
 	 */
-	throttleEventListener(eventName: string, callback: EventListenerOrEventListenerObject, userOptions: IThrottleEventListenerOptions) {
+	throttleEventListener(
+		eventName: string,
+		callback: EventListenerOrEventListenerObject,
+		userOptions: IThrottleEventListenerOptions
+	) {
 		const passiveSupported = this.passiveEventListenerSupported();
 
 		const options = Object.assign(userOptions, {
-			passive: (typeof userOptions.passive === 'undefined') ? true : userOptions.passive,
-			capture: (typeof userOptions.capture === 'undefined') ? false : userOptions.capture
+			passive:
+				typeof userOptions.passive === 'undefined'
+					? true
+					: userOptions.passive,
+			capture:
+				typeof userOptions.capture === 'undefined'
+					? false
+					: userOptions.capture,
 		});
 
 		if (!this.eventsRunning) {
 			this.eventsRunning = {};
 		}
 
-		const eventIsRunning = Object.prototype.hasOwnProperty.call(this.eventsRunning, eventName);
+		const eventIsRunning = Object.prototype.hasOwnProperty.call(
+			this.eventsRunning,
+			eventName
+		);
 
 		if (!eventIsRunning) {
 			this.eventsRunning[eventName] = false;
 		}
 
-		window.addEventListener(eventName, () => {
-			if (this.eventsRunning[eventName]) {
-				return;
-			}
+		window.addEventListener(
+			eventName,
+			() => {
+				if (this.eventsRunning[eventName]) {
+					return;
+				}
 
-			this.eventsRunning[eventName] = true;
+				this.eventsRunning[eventName] = true;
 
-			requestAnimationFrame(() => {
-				window.dispatchEvent(new CustomEvent(`${eventName}-throttled`));
-				this.eventsRunning[eventName] = false;
-			});
-		}, passiveSupported ? options : options.capture);
+				requestAnimationFrame(() => {
+					window.dispatchEvent(
+						new CustomEvent(`${eventName}-throttled`)
+					);
+					this.eventsRunning[eventName] = false;
+				});
+			},
+			passiveSupported ? options : options.capture
+		);
 
 		if (typeof callback === 'function') {
-			window.addEventListener(`${eventName}-throttled`, callback, passiveSupported ? options : options.capture);
+			window.addEventListener(
+				`${eventName}-throttled`,
+				callback,
+				passiveSupported ? options : options.capture
+			);
 		}
 	}
 
@@ -224,7 +283,7 @@ class ImageBuddy {
 				get() {
 					passiveSupported = true;
 					return true;
-				}
+				},
 			});
 
 			window.addEventListener('test', () => {}, options);

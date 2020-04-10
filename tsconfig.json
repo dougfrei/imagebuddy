@@ -3,9 +3,10 @@
 		"outDir": "./dist/",
 		"sourceMap": true,
 		"noImplicitAny": true,
-		"module": "esnext",
+		"module": "ES6",
 		"target": "es2015",
 		"allowJs": false,
-		"strict": true
+		"strict": true,
+		"declaration": true
 	}
 }
