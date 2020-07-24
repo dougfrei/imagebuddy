@@ -12,7 +12,7 @@ declare class ImageBuddy {
      *
      * @param {object} opts
      */
-    constructor(opts: ImageBuddyOpts);
+    constructor(opts: Partial<ImageBuddyOpts>);
     processElementQueue(): number;
     update(opts?: ImageBuddyUpdateOptions): void;
     /**

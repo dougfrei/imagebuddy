@@ -1,11 +1,7 @@
 import ImageBuddyDebug from './ImageBuddyDebug';
 import ImageBuddyDOMElement from './ImageBuddyDOMElement';
 import ImageBuddyEvents from './ImageBuddyEvents';
-import {
-	elementIsCached,
-	shouldIgnoreElement,
-	getContainerDimensions,
-} from './DOMUtil';
+import { elementIsCached, shouldIgnoreElement, getContainerDimensions } from './DOMUtil';
 import {
 	ImageBuddyOpts,
 	ImageBuddyElements,
@@ -26,7 +22,7 @@ class ImageBuddy {
 	 *
 	 * @param {object} opts
 	 */
-	constructor(opts: ImageBuddyOpts) {
+	constructor(opts: Partial<ImageBuddyOpts>) {
 		this.eventsRunning = {};
 		this.elements = {
 			queue: [],
@@ -55,15 +51,13 @@ class ImageBuddy {
 		};
 
 		// create default options and merge any overrides
-		this.opts = Object.assign(
-			{
-				debug: false,
-				matchDPR: true,
-				lazyLoad: true,
-				lazyLoadThreshold: 100,
-			},
-			opts
-		);
+		this.opts = {
+			debug: false,
+			matchDPR: true,
+			lazyLoad: true,
+			lazyLoadThreshold: 100,
+			...opts,
+		};
 
 		this.debugger = new ImageBuddyDebug(this.opts.debug);
 
@@ -118,11 +112,7 @@ class ImageBuddy {
 		const numProcessed = this.processElementQueue();
 		const t2 = performance.now();
 
-		this.debugger.debug(
-			'ImageBuddy: update complete',
-			`${numProcessed} elements`,
-			`${Math.round(t2 - t1)}ms`
-		);
+		this.debugger.debug('ImageBuddy: update complete', `${numProcessed} elements`, `${Math.round(t2 - t1)}ms`);
 
 		ImageBuddyEvents.emit('update');
 	}
@@ -144,9 +134,7 @@ class ImageBuddy {
 	 */
 	getElements(parentEl: HTMLElement) {
 		const elements = [];
-		const foundEls = parentEl.querySelectorAll(
-			`[${this.config.attributes.sources}]`
-		);
+		const foundEls = parentEl.querySelectorAll(`[${this.config.attributes.sources}]`);
 
 		for (let i = 0; i < foundEls.length; i++) {
 			const el = foundEls[i];
@@ -157,13 +145,7 @@ class ImageBuddy {
 				continue;
 			}
 
-			elements.push(
-				new ImageBuddyDOMElement(
-					el as HTMLElement,
-					this.config,
-					this.opts
-				)
-			);
+			elements.push(new ImageBuddyDOMElement(el as HTMLElement, this.config, this.opts));
 		}
 
 		return elements;
@@ -176,15 +158,11 @@ class ImageBuddy {
 		// cycle through loaded images and see if we need to select a different source
 		for (let i = 0; i < this.elements.loaded.length; i++) {
 			const item = this.elements.loaded[i];
-			const dimensions = getContainerDimensions(
-				item.el,
-				item.options.noHeight
-			);
+			const dimensions = getContainerDimensions(item.el, item.options.noHeight);
 
 			if (
 				dimensions.width > item.currentSize.width ||
-				(!item.options.noHeight &&
-					dimensions.height > item.currentSize.height)
+				(!item.options.noHeight && dimensions.height > item.currentSize.height)
 			) {
 				this.debugger.debug('swapping image');
 				item.chooseImage();
@@ -223,24 +201,15 @@ class ImageBuddy {
 		const passiveSupported = this.passiveEventListenerSupported();
 
 		const options = Object.assign(userOptions, {
-			passive:
-				typeof userOptions.passive === 'undefined'
-					? true
-					: userOptions.passive,
-			capture:
-				typeof userOptions.capture === 'undefined'
-					? false
-					: userOptions.capture,
+			passive: typeof userOptions.passive === 'undefined' ? true : userOptions.passive,
+			capture: typeof userOptions.capture === 'undefined' ? false : userOptions.capture,
 		});
 
 		if (!this.eventsRunning) {
 			this.eventsRunning = {};
 		}
 
-		const eventIsRunning = Object.prototype.hasOwnProperty.call(
-			this.eventsRunning,
-			eventName
-		);
+		const eventIsRunning = Object.prototype.hasOwnProperty.call(this.eventsRunning, eventName);
 
 		if (!eventIsRunning) {
 			this.eventsRunning[eventName] = false;
@@ -256,9 +225,7 @@ class ImageBuddy {
 				this.eventsRunning[eventName] = true;
 
 				requestAnimationFrame(() => {
-					window.dispatchEvent(
-						new CustomEvent(`${eventName}-throttled`)
-					);
+					window.dispatchEvent(new CustomEvent(`${eventName}-throttled`));
 					this.eventsRunning[eventName] = false;
 				});
 			},
@@ -266,11 +233,7 @@ class ImageBuddy {
 		);
 
 		if (typeof callback === 'function') {
-			window.addEventListener(
-				`${eventName}-throttled`,
-				callback,
-				passiveSupported ? options : options.capture
-			);
+			window.addEventListener(`${eventName}-throttled`, callback, passiveSupported ? options : options.capture);
 		}
 	}
 
