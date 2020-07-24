@@ -1,6 +1,6 @@
 {
 	"name": "imagebuddy",
-	"version": "1.1.1",
+	"version": "1.1.2",
 	"description": "ImageBuddy is a JavaScript library that will dynamically set the `src` attribute of an image or the `background-image` property of an element",
 	"repository": {
 		"type": "git",
