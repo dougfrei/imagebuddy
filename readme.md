@@ -1,3 +1,5 @@
+> NOTE: This project has been archived and there will be no future development. It is recommended to use the standardized browser support for lazy loading images with the `loading="lazy"` attribute now that support is widely available.
+
 # ImageBuddy
 
 ImageBuddy is a JavaScript library that will dynamically set the `src` attribute of an image or the `background-image` property of an element.
@@ -96,7 +98,7 @@ const ib = new ImageBuddy({
 
 	// Set the distance of elements (in pixels) from the bottom of the
 	// browser viewport where the lazy-loading functionality will activate.
-	lazyLoadThreshold: 100,
+	lazyLoadThreshold: 100
 });
 ```
 
